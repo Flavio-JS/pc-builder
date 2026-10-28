@@ -1,0 +1,13 @@
+# Saida de compilacao
+build/
+out/
+*.class
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Sistema
+Thumbs.db
+.DS_Store

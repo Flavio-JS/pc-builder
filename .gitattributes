@@ -1,0 +1,9 @@
+# Normaliza o fim de linha: scripts .sh precisam de LF para rodar no Linux/macOS
+# e no Git Bash; .bat precisa de CRLF para rodar no Prompt de Comando.
+* text=auto
+*.sh  text eol=lf
+*.bat text eol=crlf
+*.java text eol=lf
+*.md   text eol=lf
+*.json text eol=lf
+*.txt  text eol=lf
