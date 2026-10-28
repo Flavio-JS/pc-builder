@@ -7,3 +7,7 @@ call scripts\compilar.bat
 if errorlevel 1 exit /b 1
 
 java -cp "build\classes;build\classes-test" pcbuilder.teste.ValidadorCadastroTeste
+if errorlevel 1 exit /b 1
+
+java -cp "build\classes;build\classes-test" pcbuilder.teste.MontagemGuiadaTeste
+if errorlevel 1 exit /b 1

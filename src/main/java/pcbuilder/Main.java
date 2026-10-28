@@ -1,5 +1,7 @@
 package pcbuilder;
 
+import pcbuilder.cli.MenuPrincipal;
+import pcbuilder.cli.Terminal;
 import pcbuilder.enums.NivelProblema;
 import pcbuilder.mock.CatalogoMock;
 import pcbuilder.servico.ProblemaCadastro;
@@ -8,12 +10,14 @@ import pcbuilder.servico.ResultadoValidacao;
 /**
  * Ponto de entrada da aplicacao de linha de comando.
  *
- * <p>Responsabilidades desta HU:</p>
+ * <p>Responsabilidades desta classe:</p>
  * <ol>
  *   <li>carregar a base mockada uma unica vez ({@link CatalogoMock#criar()});</li>
  *   <li>imprimir o resumo da carga;</li>
  *   <li>com {@code --validar-base}, listar os problemas e devolver o codigo de
- *       saida {@code 2} quando existir pelo menos um {@code ERRO}.</li>
+ *       saida {@code 2} quando existir pelo menos um {@code ERRO};</li>
+ *   <li>sem argumentos, abrir o {@link MenuPrincipal} com a montagem guiada
+ *       (HU-002).</li>
  * </ol>
  *
  * <p>Codigos de saida: {@code 0} sucesso, {@code 1} erro de uso, {@code 2} base
@@ -81,8 +85,8 @@ public final class Main {
             return SAIDA_BASE_INVALIDA;
         }
 
-        System.out.println("Montagem guiada disponivel a partir da HU-002.");
-        return SAIDA_SUCESSO;
+        Terminal terminal = new Terminal();
+        return new MenuPrincipal(catalogo, terminal).executar();
     }
 
     private static void imprimirProblemas(ResultadoValidacao resultado) {

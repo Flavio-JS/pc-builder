@@ -16,7 +16,7 @@ if errorlevel 1 exit /b 1
 rem Os recursos (base/componentes.json) precisam estar no classpath
 if exist src\main\resources xcopy /E /I /Y src\main\resources build\classes > nul
 
-javac -encoding UTF-8 -sourcepath "src\main\java;src\test\java" -cp build\classes -d build\classes-test src\test\java\pcbuilder\teste\ValidadorCadastroTeste.java
+javac -encoding UTF-8 -sourcepath "src\main\java;src\test\java" -cp build\classes -d build\classes-test src\test\java\pcbuilder\teste\ValidadorCadastroTeste.java src\test\java\pcbuilder\teste\MontagemGuiadaTeste.java
 if errorlevel 1 exit /b 1
 
 echo Compilado: build\classes (aplicacao) e build\classes-test (testes).

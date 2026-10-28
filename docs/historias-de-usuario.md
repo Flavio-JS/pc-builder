@@ -157,6 +157,8 @@ PARA QUE nenhuma etapa da montagem ofereça uma peça com cadastro incompleto ou
 
 ### HU-002: Iniciar a montagem guiada e escolher o processador (etapa 1)
 
+**Status:** ✅ implementada.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que quer montar meu primeiro PC,
@@ -176,13 +178,13 @@ PARA QUE eu comece a montagem sem precisar saber quais peças existem ou combina
 - Nenhuma peça é escolhida automaticamente pelo sistema.
 
 **Tarefas:**
-- ⬜ **ST-002.1 (Domínio):** `Montagem` (`pcbuilder/modelo/Montagem.java`) com `Map<CategoriaComponente, Componente>`, `adicionar`, `obter`, `estaVazia()` e `custoTotal()` em `BigDecimal`.
-- ⬜ **ST-002.2 (Regras):** `MontagemGuiada` (`pcbuilder/servico/MontagemGuiada.java`) — orquestrador do fluxo (`proximaEtapa`, `etapaAtual`, `concluir`) com a ordem fixa das 6 categorias em `pcbuilder/config/OrdemEtapas.java`.
-- ⬜ **ST-002.3 (CLI):** `Terminal` + `TabelaComponentes` (`pcbuilder/cli/`) com leitura por número, molduras e largura fixa.
-- ⬜ **ST-002.4 (CLI):** `MenuPrincipal` + `Main` (`pcbuilder/Main.java`) com o laço do menu, código de saída `0` e captura de entrada inválida.
-- ⬜ **ST-002.5 (CLI):** `TelaEtapa` (`pcbuilder/cli/TelaEtapa.java`) com cabeçalho da etapa, barra de progresso textual e rodapé de comandos.
-- ⬜ **ST-002.6 (CLI):** `EtapaProcessador` (`pcbuilder/cli/etapas/EtapaProcessador.java`) com a listagem e o cancelamento.
-- ⬜ **ST-002.7 (Teste):** escolher, cancelar e opção inválida na etapa 1; `Montagem` sobrevive ao avanço de etapa.
+- ✅ **ST-002.1 (Domínio):** `Montagem` (`pcbuilder/modelo/Montagem.java`) com `Map<CategoriaComponente, Componente>`, `adicionar`, `obter`, `estaVazia()` e `custoTotal()` em `BigDecimal`.
+- ✅ **ST-002.2 (Regras):** `MontagemGuiada` (`pcbuilder/servico/MontagemGuiada.java`) — orquestrador do fluxo (`proximaEtapa`, `etapaAtual`, `concluir`) com a ordem fixa das 6 categorias em `pcbuilder/config/OrdemEtapas.java`.
+- ✅ **ST-002.3 (CLI):** `Terminal` + `TabelaComponentes` (`pcbuilder/cli/`) com leitura por número, molduras e largura fixa.
+- ✅ **ST-002.4 (CLI):** `MenuPrincipal` + `Main` (`pcbuilder/Main.java`) com o laço do menu, código de saída `0` e captura de entrada inválida.
+- ✅ **ST-002.5 (CLI):** `TelaEtapa` (`pcbuilder/cli/TelaEtapa.java`) com cabeçalho da etapa, barra de progresso textual e rodapé de comandos.
+- ✅ **ST-002.6 (CLI):** `EtapaProcessador` (`pcbuilder/cli/etapas/EtapaProcessador.java`) com a listagem e o cancelamento.
+- ✅ **ST-002.7 (Teste):** escolher, cancelar e opção inválida na etapa 1; `Montagem` sobrevive ao avanço de etapa.
 
 ---
 

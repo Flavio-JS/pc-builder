@@ -12,3 +12,4 @@ case "$(uname -s)" in
 esac
 
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.ValidadorCadastroTeste
+java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.MontagemGuiadaTeste
