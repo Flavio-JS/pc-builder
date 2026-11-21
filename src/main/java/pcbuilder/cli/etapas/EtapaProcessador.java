@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
+import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.cli.TabelaComponentes;
 import pcbuilder.cli.TelaEtapa;
 import pcbuilder.cli.Terminal;
@@ -178,6 +179,11 @@ public final class EtapaProcessador {
         montagem.adicionar(componente);
         terminal.linha("Processador selecionado: " + TabelaComponentes.nomeExibicao(componente)
                 + " - " + FormatadorMoeda.reais(componente.getPrecoMedioBRL()));
+        if (terminal.isDetalharLimitacoes()) {
+            for (String pendencia : avaliador.pendencias(montagem, componente)) {
+                terminal.linha("    " + TextosLimitacao.SEM_DADOS + ": " + pendencia);
+            }
+        }
     }
 
     /**

@@ -1,6 +1,7 @@
 package pcbuilder.cli.etapas;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.function.Function;
 import pcbuilder.analise.filtro.FiltroEtapa;
 import pcbuilder.analise.filtro.ListaFiltrada;
 import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
+import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.cli.TabelaComponentes;
 import pcbuilder.cli.TelaEtapa;
 import pcbuilder.cli.Terminal;
@@ -125,6 +127,11 @@ public final class SelecaoFiltrada {
                 tela.imprimirAvisosDaMontagem(fluxo.getMontagem());
                 continue;
             }
+            Runnable extra = opcoes.comandoExtra(comando);
+            if (extra != null) {
+                extra.run();
+                continue;
+            }
 
             Optional<Componente> escolhido = escolher(lista, comando);
             if (escolhido.isEmpty()) {
@@ -198,6 +205,11 @@ public final class SelecaoFiltrada {
         tela.imprimirAvisoSelecao(avisos);
         montagem.adicionar(componente);
         terminal.linha(mensagemSelecionada.apply(componente));
+        if (terminal.isDetalharLimitacoes()) {
+            for (String pendencia : avaliador.pendencias(montagem, componente)) {
+                terminal.linha("    " + TextosLimitacao.SEM_DADOS + ": " + pendencia);
+            }
+        }
     }
 
     /**
@@ -213,6 +225,7 @@ public final class SelecaoFiltrada {
         private final String mensagemSemCompativeis;
         private final String linhaZeroSemCompativeis;
         private final String mensagemInicial;
+        private final Map<String, Runnable> comandosExtras;
 
         /**
          * @param rodapeZero comando {@code [0] ...} exibido no rodape da lista
@@ -222,12 +235,27 @@ public final class SelecaoFiltrada {
          */
         public Opcoes(String rodapeZero, String mensagemSemCompativeis,
                 String linhaZeroSemCompativeis, String mensagemInicial) {
+            this(rodapeZero, mensagemSemCompativeis, linhaZeroSemCompativeis, mensagemInicial,
+                    Map.of());
+        }
+
+        /**
+         * @param rodapeZero comando {@code [0] ...} exibido no rodape da lista
+         * @param mensagemSemCompativeis primeira linha quando o filtro nao deixa item
+         * @param linhaZeroSemCompativeis comando exibido quando o filtro nao deixa item
+         * @param mensagemInicial linha extra depois do cabecalho (pode ser {@code null})
+         * @param comandosExtras comandos adicionais (tecla em maiuscula -&gt; acao)
+         */
+        public Opcoes(String rodapeZero, String mensagemSemCompativeis,
+                String linhaZeroSemCompativeis, String mensagemInicial,
+                Map<String, Runnable> comandosExtras) {
             this.rodapeZero = Objects.requireNonNull(rodapeZero, "rodapeZero");
             this.mensagemSemCompativeis = Objects.requireNonNull(mensagemSemCompativeis,
                     "mensagemSemCompativeis");
             this.linhaZeroSemCompativeis = Objects.requireNonNull(linhaZeroSemCompativeis,
                     "linhaZeroSemCompativeis");
             this.mensagemInicial = mensagemInicial;
+            this.comandosExtras = Map.copyOf(comandosExtras);
         }
 
         /** Opcoes das etapas obrigatorias (voltar e mensagem generica). */
@@ -250,6 +278,19 @@ public final class SelecaoFiltrada {
 
         public String getMensagemInicial() {
             return mensagemInicial;
+        }
+
+        /**
+         * Acao extra para a tecla digitada, quando existir.
+         *
+         * @param comando texto digitado (comparado sem diferenciar maiusculas)
+         * @return a acao, ou {@code null} quando a tecla nao tem comando extra
+         */
+        public Runnable comandoExtra(String comando) {
+            if (comando == null) {
+                return null;
+            }
+            return comandosExtras.get(comando.trim().toUpperCase(Locale.ROOT));
         }
     }
 }

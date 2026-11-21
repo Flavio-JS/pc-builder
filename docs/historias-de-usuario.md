@@ -220,7 +220,7 @@ PARA QUE eu não perca tempo lendo opções que nem vão funcionar juntas.
 
 ### HU-004: Avisar quando uma peça já escolhida limita a nova (sem bloquear)
 
-**Status:** ✅ implementada — motor em `pcbuilder/analise/limitacao/` (L01, L02, L04–L07, L09–L11) e renderização do `[!]` em `TelaEtapa`; as telas das etapas 2 a 6 entram nas HUs 005–009. Enquanto isso, a prévia da próxima etapa já mostra quantos itens teriam aviso e `--detalhar-limitacoes` imprime o bloco completo.
+**Status:** ✅ implementada — motor em `pcbuilder/analise/limitacao/` (C02, C09, L01, L02, L04–L07, L09–L11) e renderização do `[!]` em `TelaEtapa`; as telas das etapas 2 a 6 entram nas HUs 005–009. O comando `--detalhar-limitacoes` agora imprime os dados que faltam para calcular ao selecionar uma peça.
 
 *Persona: usuário iniciante (leigo)*
 
@@ -375,6 +375,8 @@ PARA QUE eu escolha sem errar o encaixe e sabendo a diferença de velocidade.
 
 ### HU-009: Escolher a fonte (etapa 6)
 
+**Status:** ✅ implementada — `EtapaFonte` com bloco de consumo/conectores, `[C]` detalhado, filtro C10/C14, avisos L06/L09 e mensagem de "nenhuma fonte compatível" com os requisitos calculados. `RequisitosFonte` é a fonte única dos conectores (cabeçalho e filtro); `CalculadoraConsumo.detalhar` alimenta o `[C]`; `CalculadoraFonte` alimenta L06/L09. A transição para o resumo fica para a HU-010 (por ora o fluxo imprime `Montagem concluida.`).
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que não sabe calcular quantos watts precisa nem quais cabos existem,
@@ -404,12 +406,12 @@ Conectores exigidos: 1x 16-pinos (placa de video) + 1x 8-pinos (placa-mae)
 - `[C] Ver calculo do consumo` detalha a soma componente por componente.
 
 **Tarefas:**
-- ⬜ **ST-009.1 (Regras):** `CalculadoraConsumo` (`pcbuilder/analise/CalculadoraConsumo.java`) com `consumoTotalSistemaWatts` (CPU + GPU + placa-mãe + RAM + SSD + reserva de fans), `consumoComMargemWatts` (× `MARGEM_SEGURANCA_FONTE`) e detalhamento por componente.
-- ⬜ **ST-009.2 (Regras):** `RequisitosFonte` (`pcbuilder/analise/RequisitosFonte.java`) que deriva de `gpu.quantidadeConectores*` e `placaMae.quantidadeConectoresCPU8pin` a lista de conectores exigidos (usada no cabeçalho **e** no filtro, sem duplicar regra).
-- ⬜ **ST-009.3 (Regras):** `FiltroConectoresFonte` (C10) + `FiltroFonteSuficiente` (C14) consumindo `RequisitosFonte` e `CalculadoraConsumo`; `CalculadoraFonte` para os avisos `L06`/`L09`.
-- ⬜ **ST-009.4 (CLI):** `EtapaFonte` (`pcbuilder/cli/etapas/EtapaFonte.java`) com o bloco de requisitos antes da lista, `[C]` e `[M]`.
-- ⬜ **ST-009.5 (CLI):** transição automática para o resumo após a escolha e mensagem de "nenhuma fonte compatível" com os requisitos calculados.
-- ⬜ **ST-009.6 (Teste):** GPU `1x 16-pinos` → fontes sem 16 pinos ocultas (motivo correto); GPU `2x 8-pinos` → fonte com 1x 8-pinos oculta; GPU pulada → nenhuma exigência de conector PCIe; consumo 700 W → fonte de 750 W oculta e de 850 W listada; fonte de 1200 W gera aviso de eficiência.
+- ✅ **ST-009.1 (Regras):** `CalculadoraConsumo` (`pcbuilder/analise/CalculadoraConsumo.java`) com `consumoTotalSistemaWatts` (CPU + GPU + placa-mãe + RAM + SSD + reserva de fans), `consumoComMargemWatts` (× `MARGEM_SEGURANCA_FONTE`) e detalhamento por componente.
+- ✅ **ST-009.2 (Regras):** `RequisitosFonte` (`pcbuilder/analise/RequisitosFonte.java`) que deriva de `gpu.quantidadeConectores*` e `placaMae.quantidadeConectoresCPU8pin` a lista de conectores exigidos (usada no cabeçalho **e** no filtro, sem duplicar regra).
+- ✅ **ST-009.3 (Regras):** `FiltroConectoresFonte` (C10) + `FiltroFonteSuficiente` (C14) consumindo `RequisitosFonte` e `CalculadoraConsumo`; `CalculadoraFonte` para os avisos `L06`/`L09`.
+- ✅ **ST-009.4 (CLI):** `EtapaFonte` (`pcbuilder/cli/etapas/EtapaFonte.java`) com o bloco de requisitos antes da lista, `[C]` e `[M]`.
+- ✅ **ST-009.5 (CLI):** transição automática para o resumo após a escolha e mensagem de "nenhuma fonte compatível" com os requisitos calculados.
+- ✅ **ST-009.6 (Teste):** GPU `1x 16-pinos` → fontes sem 16 pinos ocultas (motivo correto); GPU `2x 8-pinos` → fonte com 1x 8-pinos oculta; GPU pulada → nenhuma exigência de conector PCIe; consumo 700 W → fonte de 750 W oculta e de 850 W listada; fonte de 1200 W gera aviso de eficiência.
 
 ---
 

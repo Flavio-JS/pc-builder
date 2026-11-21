@@ -26,10 +26,22 @@ public final class Terminal {
 
     private final BufferedReader entrada;
     private final PrintStream saida;
+    private final boolean detalharLimitacoes;
 
     /** Terminal ligado ao teclado e a saida padrao do processo. */
     public Terminal() {
         this(new InputStreamReader(System.in));
+    }
+
+    /**
+     * Terminal ligado ao teclado e a saida padrao, com a opcao
+     * {@code --detalhar-limitacoes}.
+     *
+     * @param detalharLimitacoes quando {@code true}, a selecao de uma peca imprime os
+     *        dados que faltam para calcular alguma regra
+     */
+    public Terminal(boolean detalharLimitacoes) {
+        this(new InputStreamReader(System.in), System.out, detalharLimitacoes);
     }
 
     /**
@@ -46,8 +58,24 @@ public final class Terminal {
      * @param saida destino do texto impresso
      */
     public Terminal(Reader entrada, PrintStream saida) {
+        this(entrada, saida, false);
+    }
+
+    /**
+     * @param entrada origem dos caracteres digitados
+     * @param saida destino do texto impresso
+     * @param detalharLimitacoes quando {@code true}, a selecao de uma peca imprime os
+     *        dados que faltam para calcular alguma regra
+     */
+    public Terminal(Reader entrada, PrintStream saida, boolean detalharLimitacoes) {
         this.entrada = new BufferedReader(entrada);
         this.saida = saida;
+        this.detalharLimitacoes = detalharLimitacoes;
+    }
+
+    /** {@code true} quando {@code --detalhar-limitacoes} foi ligado. */
+    public boolean isDetalharLimitacoes() {
+        return detalharLimitacoes;
     }
 
     /** Imprime o texto sem quebrar linha (usado em prompts). */

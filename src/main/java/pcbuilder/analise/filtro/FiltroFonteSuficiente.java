@@ -2,7 +2,7 @@ package pcbuilder.analise.filtro;
 
 import java.util.Optional;
 
-import pcbuilder.analise.CalculadoraConsumo;
+import pcbuilder.analise.RequisitosFonte;
 import pcbuilder.config.ParametrosCalculo;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.modelo.Componente;
@@ -31,7 +31,7 @@ public final class FiltroFonteSuficiente implements RegraFiltro {
         if (!(candidato instanceof Fonte fonte)) {
             return Optional.empty();
         }
-        int necessario = CalculadoraConsumo.consumoComMargemWatts(atual);
+        int necessario = RequisitosFonte.potenciaNecessariaWatts(atual);
         if (necessario <= fonte.getPotenciaTotalWatts()) {
             return Optional.empty();
         }

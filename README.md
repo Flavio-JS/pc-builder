@@ -9,8 +9,9 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 **Status:** **HU-001** (carregar e validar a base mockada), **HU-002** (menu
 principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
 dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae),
-**HU-006** (etapa 3, memoria), **HU-007** (etapa 4, placa de video condicional) e
-**HU-008** (etapa 5, armazenamento) implementadas. A tela da etapa 6 chega na HU-009.
+**HU-006** (etapa 3, memoria), **HU-007** (etapa 4, placa de video condicional),
+**HU-008** (etapa 5, armazenamento) e **HU-009** (etapa 6, fonte) implementadas. O resumo
+final chega na HU-010.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -42,9 +43,12 @@ dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, pl
 * **Etapa 5 (armazenamento)** une SSD e HD na mesma lista, filtra por C04 (slot M.2 /
   porta SATA) e mostra `SSD NVMe M.2 2280 | 2 TB | 7000 MB/s` ou
   `HD SATA 3.5" | 2 TB | 200 MB/s`; HD/SSD SATA recebem aviso informativo de midia lenta.
+* **Etapa 6 (fonte)** mostra consumo com margem de 40% e conectores exigidos, detalha a
+  conta com `[C]`, filtra por C10/C14 (potencia e conectores) e marca L06 (pico
+  transiente, `RISCO`) e L09 (eficiencia) com `[!]`.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
-* Com `--detalhar-limitacoes`, a previa da proxima etapa imprime o bloco completo de
-  cada aviso e os dados que faltam para calcular (`Sem dados para calcular`).
+* Com `--detalhar-limitacoes`, ao selecionar uma peca o programa imprime os dados que
+  faltam para calcular alguma regra (`Sem dados para calcular: ...`).
 * O usuario leigo so digita **numeros de opcao**: nenhuma especificacao tecnica e
   pedida e nenhuma peca e escolhida automaticamente.
 
@@ -53,7 +57,7 @@ dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, pl
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 008
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 009
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
@@ -178,9 +182,25 @@ mostra midia, capacidade e velocidade:
 O `[!]` do HD/SSD SATA e o informativo de midia lenta (mais lento que o NVMe); o L10 de
 banda aparece quando o SSD e de geracao maior que o slot. `[0] Voltar` retorna a etapa 4.
 
-Depois do armazenamento, a previa da etapa 6 (fonte) mostra o consumo calculado e os
-conectores exigidos; com `--detalhar-limitacoes` cada aviso aparece completo, inclusive
-os dados que faltam para calcular (`Sem dados para calcular`).
+Depois do armazenamento, a etapa 6 mostra o que a configuracao exige e filtra as fontes
+por potencia (C14) e conectores (C10):
+
+```
+=== Etapa 6 de 6 - Fonte (obrigatorio) ===
+[+Processador]   [+Placa-mae]   [+Memoria]   [+Video]   [+Armazenamento]   >>[Fonte]<<
+Consumo estimado da sua configuracao: 401 W (com margem de 40%: 562 W)
+Conectores exigidos: 1x 16-pinos (placa de video) + 1x 8-pinos (placa-mae)
+   1) MSI MAG A750GL                    R$ 549,90  750 W | 80 Plus Gold | 12V: 744 W | 1x 16-pinos | 2x 8-pinos
+...
+[C] Ver calculo do consumo   [0] Voltar
+```
+
+`[C]` detalha a soma (`Processador ... - 140 W`, `Placa de video ... - 220 W`, ...,
+`Total - 401 W (com margem de 40%: 562 W)`). Fonte sem o conector exigido fica em `[M]`
+(`sem conector de 16 pinos (a placa de video exige 1)`) - **nao existe caminho de
+adaptador**. L09 avisa fonte fora de 40-60% de carga e L06 marca `RISCO` quando o pico da
+GPU passa do trilho de 12 V. Ao escolher, imprime `Fonte selecionada: ...` e conclui a
+montagem (`Montagem concluida.` ate a HU-010).
 
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 

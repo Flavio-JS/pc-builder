@@ -3,7 +3,7 @@ package pcbuilder.analise.limitacao;
 import java.util.List;
 import java.util.Optional;
 
-import pcbuilder.analise.CalculadoraConsumo;
+import pcbuilder.analise.CalculadoraFonte;
 import pcbuilder.analise.ComponentesDaMontagem;
 import pcbuilder.config.ParametrosCalculo;
 import pcbuilder.enums.SeveridadeLimitacao;
@@ -33,10 +33,8 @@ public final class LimitacaoEficienciaFonte implements RegraLimitacao {
             return List.of();
         }
         Fonte fonte = fonteOpt.get();
-        int consumo = CalculadoraConsumo.consumoTotalSistemaWatts(montagem);
-        double carga = consumo * 100.0 / fonte.getPotenciaTotalWatts();
-        if (carga >= ParametrosCalculo.FAIXA_EFICIENCIA_FONTE_MIN_PERCENTUAL
-                && carga <= ParametrosCalculo.FAIXA_EFICIENCIA_FONTE_MAX_PERCENTUAL) {
+        double carga = CalculadoraFonte.percentualCarga(montagem, fonte);
+        if (CalculadoraFonte.dentroDaFaixaEficiente(carga)) {
             return List.of();
         }
         String faixa = ParametrosCalculo.FAIXA_EFICIENCIA_FONTE_MIN_PERCENTUAL + "-"

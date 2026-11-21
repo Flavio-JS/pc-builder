@@ -3,6 +3,7 @@ package pcbuilder.analise.limitacao;
 import java.util.List;
 import java.util.Optional;
 
+import pcbuilder.analise.CalculadoraFonte;
 import pcbuilder.analise.ComponentesDaMontagem;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.enums.SeveridadeLimitacao;
@@ -42,7 +43,7 @@ public final class LimitacaoTransienteFonte implements RegraLimitacao {
         }
         int pico = gpu.get().getPicoTransienteWatts();
         int trilho = fonte.get().getPotenciaTrilho12VWatts();
-        if (trilho <= 0 || pico <= trilho) {
+        if (!CalculadoraFonte.picoAcimaDoTrilho(gpu.get(), fonte.get())) {
             return List.of();
         }
 

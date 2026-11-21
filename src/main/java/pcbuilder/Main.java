@@ -100,8 +100,8 @@ public final class Main {
             return SAIDA_BASE_INVALIDA;
         }
 
-        Terminal terminal = new Terminal();
-        return new MenuPrincipal(catalogo, terminal, explicarFiltro, detalharLimitacoes).executar();
+        Terminal terminal = new Terminal(detalharLimitacoes);
+        return new MenuPrincipal(catalogo, terminal, explicarFiltro).executar();
     }
 
     private static void imprimirProblemas(ResultadoValidacao resultado) {
