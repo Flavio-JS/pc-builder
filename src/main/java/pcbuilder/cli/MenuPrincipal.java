@@ -14,6 +14,7 @@ import pcbuilder.cli.etapas.EtapaProcessador;
 import pcbuilder.cli.etapas.ResultadoEtapa;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.mock.CatalogoMock;
+import pcbuilder.modelo.Montagem;
 import pcbuilder.relatorio.ResumoMontagem;
 import pcbuilder.servico.MontagemGuiada;
 
@@ -208,12 +209,14 @@ public final class MenuPrincipal {
         if (etapa == 0) {
             return;
         }
+        Montagem antesDaTroca = fluxo.getMontagem().copia();
         fluxo.reabrirEtapa(etapa);
 
         RevalidadorMontagem revalidador = new RevalidadorMontagem();
         while (true) {
             ResultadoEtapa resultado = executarEtapa(fluxo, true);
             if (resultado != ResultadoEtapa.CONCLUIDA) {
+                fluxo.getMontagem().restaurar(antesDaTroca);
                 return;
             }
             Optional<RevalidadorMontagem.EtapaInvalida> invalida =

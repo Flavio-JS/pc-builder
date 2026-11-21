@@ -76,6 +76,7 @@ public final class TrocaPecaTeste {
         etapaTrocaPedeConfirmacao();
         etapaProcessadorVoltaDoResumo();
         menuTrocaMemoria();
+        menuTrocaInvalidaVoltaSemAlterar();
 
         System.exit(Assercao.concluir());
     }
@@ -407,6 +408,69 @@ public final class TrocaPecaTeste {
                 texto.contains(TabelaComponentes.nomeExibicao(placa))
                         && texto.contains(TabelaComponentes.nomeExibicao(armazenamento))
                         && texto.contains(TabelaComponentes.nomeExibicao(fonte)));
+    }
+
+    private static void menuTrocaInvalidaVoltaSemAlterar() {
+        int indiceCpu = indiceCpu(true);
+        Processador cpu = cpuDoCatalogo(true);
+        Processador outro = CATALOGO.porCategoria(CategoriaComponente.CPU).stream()
+                .map(Processador.class::cast)
+                .filter(candidato -> candidato.isPossuiVideoIntegrado()
+                        && candidato.getSoquete() != cpu.getSoquete())
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "base sem CPU iGPU de outro soquete"));
+        int indiceOutro = 0;
+        List<Componente> cpus = CATALOGO.porCategoria(CategoriaComponente.CPU);
+        for (int posicao = 0; posicao < cpus.size(); posicao++) {
+            if (cpus.get(posicao) == outro) {
+                indiceOutro = posicao + 1;
+                break;
+            }
+        }
+
+        Componente placa = FILTRO.filtrar(CategoriaComponente.PLACA_MAE, montagem(cpu))
+                .getCompativeis().get(0);
+        Montagem base = montagem(cpu, placa);
+        Componente memoria = FILTRO.filtrar(CategoriaComponente.MEMORIA, base)
+                .getCompativeis().get(0);
+        Montagem comMemoria = montagem(cpu, placa, memoria);
+        Componente armazenamento = FILTRO.filtrar(CategoriaComponente.ARMAZENAMENTO,
+                comMemoria).getCompativeis().get(0);
+        Montagem comArmazenamento = montagem(cpu, placa, memoria, armazenamento);
+        Componente fonte = FILTRO.filtrar(CategoriaComponente.FONTE, comArmazenamento)
+                .getCompativeis().get(0);
+
+        boolean avisoPlaca = !AVALIADOR.avaliar(montagem(cpu), placa).isEmpty();
+        boolean avisoMemoria = !AVALIADOR.avaliar(base, memoria).isEmpty();
+        boolean avisoArmazenamento = !AVALIADOR.avaliar(comMemoria, armazenamento).isEmpty();
+        boolean avisoFonte = !AVALIADOR.avaliar(comArmazenamento, fonte).isEmpty();
+        Montagem completa = montagem(cpu, placa, memoria, armazenamento, fonte);
+        boolean avisoCpu = !AVALIADOR.avaliar(completa, outro).isEmpty();
+
+        String entrada = "1\n" + indiceCpu + "\n1\n" + flag(avisoPlaca)
+                + "1\n" + flag(avisoMemoria) + "0\n"
+                + "1\n" + flag(avisoArmazenamento) + "1\n" + flag(avisoFonte)
+                + "T\n1\n" + indiceOutro + "\nS\n" + flag(avisoCpu)
+                + "0\n0\n";
+        Saida saida = new Saida(entrada);
+        int codigo = new MenuPrincipal(CATALOGO, saida.terminal).executar();
+
+        Assercao.iguais("menu invalido: execucao sem erro", 0, codigo);
+        String texto = saida.texto();
+        Assercao.verdadeiro("menu invalido: etapa 2 apontada",
+                texto.contains("Configuracao invalida: a etapa 2"));
+        Assercao.verdadeiro("menu invalido: CPU nova escolhida",
+                texto.contains("Processador selecionado: "
+                        + TabelaComponentes.nomeExibicao(outro)));
+
+        BigDecimal totalOriginal = soma(cpu.getPrecoMedioBRL(), placa.getPrecoMedioBRL(),
+                memoria.getPrecoMedioBRL(), armazenamento.getPrecoMedioBRL(),
+                fonte.getPrecoMedioBRL());
+        Assercao.iguais("menu invalido: [0] restaura o resumo", 2,
+                contar(texto, "TOTAL: " + FormatadorMoeda.reais(totalOriginal)));
+        Assercao.iguais("menu invalido: resumo antes e depois", 2,
+                contar(texto, TelaResumo.TITULO));
     }
 
     // ---------------------------------------------------------------- auxiliares

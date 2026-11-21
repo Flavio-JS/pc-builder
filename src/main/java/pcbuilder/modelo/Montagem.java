@@ -95,6 +95,34 @@ public final class Montagem {
     }
 
     /**
+     * Copia das pecas e dos avisos acumulados (HU-011).
+     *
+     * <p>Usada para desfazer uma troca que invalidou outra etapa quando o usuario
+     * escolhe {@code [0] Voltar}: o resumo volta exatamente ao estado anterior.</p>
+     *
+     * @return copia independente da montagem
+     */
+    public Montagem copia() {
+        Montagem copia = new Montagem();
+        copia.pecas.putAll(pecas);
+        copia.limitacoes.addAll(limitacoes);
+        return copia;
+    }
+
+    /**
+     * Restaura pecas e avisos a partir de uma copia (HU-011).
+     *
+     * @param copia estado anterior obtido com {@link #copia()}
+     */
+    public void restaurar(Montagem copia) {
+        Objects.requireNonNull(copia, "copia");
+        pecas.clear();
+        pecas.putAll(copia.pecas);
+        limitacoes.clear();
+        limitacoes.addAll(copia.limitacoes);
+    }
+
+    /**
      * Registra os avisos aceitos pelo usuario (HU-004).
      *
      * @param novas limitacoes a acumular, na ordem em que foram exibidas
