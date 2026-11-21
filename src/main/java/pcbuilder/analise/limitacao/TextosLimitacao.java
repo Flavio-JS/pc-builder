@@ -116,6 +116,15 @@ public final class TextosLimitacao {
                 + " para se proteger do calor.";
     }
 
+    /** C09: a placa pode precisar de atualizacao de BIOS para a CPU. */
+    public static String bios(PlacaMae placaMae, Processador cpu) {
+        String detalhe = placaMae.isSuportaAtualizacaoBIOSSemCPU()
+                ? "a placa atualiza a BIOS sem precisar de uma CPU compativel"
+                : "se a BIOS vier antiga, pode ser preciso uma CPU compativel so para atualizar";
+        return "esta placa-mae pode exigir atualizacao de BIOS para o processador "
+                + nome(cpu) + " (" + detalhe + ").";
+    }
+
     /** L04: a memoria roda abaixo da frequencia anunciada. */
     public static String frequenciaMemoria(Componente limitante, Memoria memoria,
             int frequenciaEfetiva, double perda) {

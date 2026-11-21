@@ -80,9 +80,9 @@ public final class TabelaComponentes {
      */
     public static String linha(boolean possuiLimitacao, int numero, String modelo, String preco,
             String apoio) {
-        String inicio = possuiLimitacao ? MARCADOR_LIMITACAO : " ";
-        return String.format(inicio + "%3d) %-" + LARGURA_MODELO + "s  %" + LARGURA_PRECO
-                        + "s  %s",
+        String formato = (possuiLimitacao ? MARCADOR_LIMITACAO : "") + " %3d) %-"
+                + LARGURA_MODELO + "s  %" + LARGURA_PRECO + "s  %s";
+        return String.format(formato,
                 numero,
                 truncar(modelo, LARGURA_MODELO),
                 preco == null ? "" : preco,

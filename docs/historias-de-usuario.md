@@ -261,6 +261,8 @@ PARA QUE eu decida com consciência se aceito a perda ou se troco a outra peça 
 
 ### HU-005: Escolher a placa-mãe (etapa 2)
 
+**Status:** ✅ implementada — `EtapaPlacaMae` com filtro por soquete, linha de apoio de `ResumoPlacaMae`, `[M] Ver ocultos`, `[0] Voltar`, `[L] Avisos` e os avisos `L02`/`C09` (HU-004). A etapa 3 em diante continua na prévia até as HUs 006–009. *Nota de implementação:* a tabela `RequisitoBIOS (idPlacaMae, idProcessador)` não existe na base, então a `C09` é **estimada** por família de chipset × ano de lançamento da CPU (`pcbuilder/analise/RequisitoBIOS.java`), sempre como aviso e nunca como bloqueio.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que já escolheu o processador,
@@ -278,11 +280,11 @@ PARA QUE eu escolha uma placa que não deixe o meu processador nem a futura mem�
 - Nenhuma placa é ocultada por limitação de desempenho — só por incompatibilidade de soquete.
 
 **Tarefas:**
-- ⬜ **ST-005.1 (CLI):** `EtapaPlacaMae` (`pcbuilder/cli/etapas/EtapaPlacaMae.java`) com listagem, linha de apoio, `[0]`, `[M]` e `[L]`.
-- ⬜ **ST-005.2 (Regras):** `ResumoPlacaMae` (`pcbuilder/servico/resumos/`) montando a linha de apoio a partir de VRM, slots e chipset (nada de texto fixo no código de tela).
-- ⬜ **ST-005.3 (Regras):** habilitar `FiltroSoquete` (C01) e os avisos `L02` (VRM) e `C09` (BIOS) nesta etapa.
-- ⬜ **ST-005.4 (CLI):** fluxo "voltar" que retorna à etapa 1 sem perder a montagem e reaplica o filtro ao retornar.
-- ⬜ **ST-005.5 (Teste):** CPU AM5 → só placas AM5; placa LGA1700 em `[M]` com motivo; VRM apertado marcado `[!]`; voltar/trocar CPU reaplicando o filtro.
+- ✅ **ST-005.1 (CLI):** `EtapaPlacaMae` (`pcbuilder/cli/etapas/EtapaPlacaMae.java`) com listagem, linha de apoio, `[0]`, `[M]` e `[L]`.
+- ✅ **ST-005.2 (Regras):** `ResumoPlacaMae` (`pcbuilder/servico/resumos/`) montando a linha de apoio a partir de VRM, slots e chipset (nada de texto fixo no código de tela).
+- ✅ **ST-005.3 (Regras):** habilitar `FiltroSoquete` (C01) e os avisos `L02` (VRM) e `C09` (BIOS) nesta etapa.
+- ✅ **ST-005.4 (CLI):** fluxo "voltar" que retorna à etapa 1 sem perder a montagem e reaplica o filtro ao retornar.
+- ✅ **ST-005.5 (Teste):** CPU AM5 → só placas AM5; placa LGA1700 em `[M]` com motivo; VRM apertado marcado `[!]`; voltar/trocar CPU reaplicando o filtro.
 
 ---
 

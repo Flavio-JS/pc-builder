@@ -11,6 +11,9 @@ public enum ResultadoEtapa {
     /** Peca escolhida e guardada na montagem; o fluxo pode avancar. */
     CONCLUIDA,
 
+    /** O usuario pediu para voltar e trocar a peca da etapa anterior ([0] Voltar). */
+    VOLTAR,
+
     /** O usuario cancelou a montagem (ou a entrada terminou). */
     CANCELADA,
 

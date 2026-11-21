@@ -18,13 +18,17 @@ import pcbuilder.modelo.Montagem;
  * copia. Assim a mesma regra enxerga o par completo nos dois sentidos: escolher a peca
  * fraca antes ou depois produz o mesmo aviso. A montagem original nao e alterada.</p>
  *
+ * <p>Alem das regras L, a lista inclui o alerta <strong>C09</strong> (BIOS minima para a
+ * CPU), que a HU-005 trata como aviso e nunca como bloqueio.</p>
+ *
  * <p>Nenhum resultado daqui altera o filtro da HU-003: filtro e aviso sao avaliados
  * separadamente, e uma peca com {@code [!]} continua selecionavel.</p>
  */
 public final class AvaliadorLimitacoes {
 
-    /** Regras na ordem sugerida pela secao 14: L01 por ultimo. */
+    /** Regras na ordem sugerida pela secao 14: as C primeiro e L01 por ultimo. */
     private static final List<RegraLimitacao> REGRAS_PADRAO = List.of(
+            new LimitacaoBios(),
             new LimitacaoVrm(),
             new LimitacaoMemoria(),
             new LimitacaoPcieGpu(),

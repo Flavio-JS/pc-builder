@@ -349,7 +349,8 @@ public final class LimitacoesTeste {
 
     private static void tabelaComMarcador() {
         String marcada = TabelaComponentes.linha(true, 1, "X", "R$ 1,00", "");
-        Assercao.verdadeiro("tabela: marcador [!] antes do numero", marcada.startsWith("[!]  1)"));
+        Assercao.verdadeiro("tabela: marcador [!] antes do numero",
+                marcada.startsWith("[!]   1)"));
         String normal = TabelaComponentes.linha(1, "X", "R$ 1,00", "");
         Assercao.verdadeiro("tabela: item sem aviso mantem o formato antigo",
                 normal.startsWith("   1)"));

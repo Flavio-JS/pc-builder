@@ -83,6 +83,21 @@ public final class MontagemGuiada {
         return etapaAtual;
     }
 
+    /**
+     * Volta uma etapa, preservando as pecas ja escolhidas (HU-005).
+     *
+     * <p>Usado pelo {@code [0] Voltar} da etapa 2: a CPU continua na montagem e, ao
+     * avancar de novo, o filtro da etapa seguinte e recalculado a partir dela.</p>
+     *
+     * @return o novo numero da etapa ({@code 1} quando ja estava na primeira)
+     */
+    public int etapaAnterior() {
+        if (etapaAtual > 1) {
+            etapaAtual--;
+        }
+        return etapaAtual;
+    }
+
     /** A etapa informada ja foi percorrida? */
     public boolean etapaConcluida(int etapa) {
         return etapa >= 1 && etapa < etapaAtual;
