@@ -2,6 +2,8 @@ package pcbuilder.cli;
 
 import java.util.Optional;
 
+import pcbuilder.analise.filtro.FiltroEtapa;
+import pcbuilder.analise.filtro.ListaFiltrada;
 import pcbuilder.cli.etapas.EtapaProcessador;
 import pcbuilder.cli.etapas.ResultadoEtapa;
 import pcbuilder.enums.CategoriaComponente;
@@ -17,9 +19,10 @@ import pcbuilder.servico.MontagemGuiada;
  * usuario sai do fluxo (cancelou ou a base nao tem a categoria), o menu volta a
  * aparecer.</p>
  *
- * <p>As etapas 2 a 6 ainda nao existem nesta HU: ao avancar da etapa 1 o programa
- * mostra o cabecalho da proxima etapa e informa em qual HU ela entra, voltando ao
- * menu sem manter a montagem parcial.</p>
+ * <p>As etapas 2 a 6 ainda nao existem nesta HU. Ao avancar da etapa 1 o programa ja
+ * aplica o filtro de compatibilidade (HU-003) e mostra quantos itens da proxima etapa
+ * encaixam na escolha feita, voltando ao menu sem manter a montagem parcial. A tela
+ * completa de cada etapa entra nas HUs 005 a 009.</p>
  */
 public final class MenuPrincipal {
 
@@ -37,17 +40,32 @@ public final class MenuPrincipal {
 
     private static final String AVISO_ETAPAS_PENDENTES =
             "As etapas 2 a 6 entram nas HUs 005 a 009. Voltando ao menu principal.";
+    private static final String PREFIXO_PREVIA_FILTRO = "Filtro da proxima etapa: ";
 
     private final CatalogoMock catalogo;
     private final Terminal terminal;
+    private final FiltroEtapa filtro;
 
     /**
      * @param catalogo base carregada uma unica vez pela aplicacao
      * @param terminal entrada e saida do programa
      */
     public MenuPrincipal(CatalogoMock catalogo, Terminal terminal) {
+        this(catalogo, terminal, false);
+    }
+
+    /**
+     * @param catalogo base carregada uma unica vez pela aplicacao
+     * @param terminal entrada e saida do programa
+     * @param explicarFiltro quando {@code true}, cada item oculto tambem vai para o
+     *        {@code stderr} ({@code --explicar-filtro})
+     */
+    public MenuPrincipal(CatalogoMock catalogo, Terminal terminal, boolean explicarFiltro) {
         this.catalogo = catalogo;
         this.terminal = terminal;
+        this.filtro = explicarFiltro
+                ? FiltroEtapa.explicativo(catalogo, System.err::println)
+                : new FiltroEtapa(catalogo);
     }
 
     /**
@@ -106,16 +124,20 @@ public final class MenuPrincipal {
     }
 
     /**
-     * Exibe o cabecalho da etapa seguinte e avisa que ela pertence a outra HU.
+     * Exibe o cabecalho da etapa seguinte, a contagem do filtro (HU-003) e avisa que a
+     * tela completa pertence a outra HU.
      *
-     * <p>Serve para provar que a montagem avancou de etapa preservando a escolha
-     * anterior, enquanto as etapas 2 a 6 nao estao implementadas.</p>
+     * <p>Serve para provar que a montagem avancou preservando a escolha anterior e que o
+     * filtro ja esta ligado, enquanto as etapas 2 a 6 nao estao implementadas.</p>
      */
     private void informarEtapaPendente(MontagemGuiada fluxo) {
         terminal.linhaEmBranco();
         TelaEtapa tela = new TelaEtapa(terminal);
         tela.imprimirCabecalho(fluxo.etapaAtual());
         tela.imprimirBarraProgresso(fluxo.etapaAtual());
+
+        ListaFiltrada lista = filtro.filtrar(fluxo.categoriaAtual(), fluxo.getMontagem());
+        terminal.linha(PREFIXO_PREVIA_FILTRO + TelaEtapa.textoContagem(lista) + ".");
         terminal.linha(AVISO_ETAPAS_PENDENTES);
     }
 }

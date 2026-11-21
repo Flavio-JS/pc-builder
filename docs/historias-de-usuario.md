@@ -190,6 +190,8 @@ PARA QUE eu comece a montagem sem precisar saber quais peças existem ou combina
 
 ### HU-003: Exibir apenas componentes compatíveis em cada etapa
 
+**Status:** ✅ implementada — motor de filtro (`pcbuilder/analise/filtro/`) e renderização da lista filtrada em `TelaEtapa`; as telas das etapas 2 a 6 entram nas HUs 005–009. A `C06` não oculta modelo nenhum (toda GPU encaixa): ela decide a **obrigatoriedade** da etapa 4 (`FiltroVideoIntegrado.exigePlacaVideo`), usada na HU-007.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que não sabe o que combina com o quê,
@@ -207,12 +209,12 @@ PARA QUE eu não perca tempo lendo opções que nem vão funcionar juntas.
 - Com `--explicar-filtro`, cada item oculto também é impresso no `stderr` (depuração).
 
 **Tarefas:**
-- ⬜ **ST-003.1 (Regras):** interface `RegraFiltro` (`pcbuilder/analise/filtro/RegraFiltro.java`) com `CategoriaComponente categoriaAfetada()` e `Optional<String> motivoIncompatibilidade(Montagem atual, Componente candidato)` — devolve o motivo quando o item deve ser **ocultado**.
-- ⬜ **ST-003.2 (Regras):** implementações `FiltroSoquete` (C01), `FiltroTipoMemoria` (C02), `FiltroSlotsMemoria` (C03), `FiltroSlotArmazenamento` (C04), `FiltroSlotPcie` (C05), `FiltroVideoIntegrado` (C06), `FiltroConectoresFonte` (C10) e `FiltroFonteSuficiente` (C14).
-- ⬜ **ST-003.3 (Regras):** `FiltroEtapa` (`pcbuilder/analise/filtro/FiltroEtapa.java`) com `filtrar(categoria, montagem)` devolvendo `ListaFiltrada` (`compativeis`, `ocultos` + motivo, `totalOriginal`).
-- ⬜ **ST-003.4 (CLI):** integrar `FiltroEtapa` na `TelaEtapa`, com a contagem de ocultos e o comando `[M]`.
-- ⬜ **ST-003.5 (CLI):** mensagem de "nenhum compatível" com o motivo predominante (contagem de motivos) e retorno à etapa anterior.
-- ⬜ **ST-003.6 (Teste):** CPU AM5 → só placas AM5; placa DDR5 → só memórias DDR5; GPU 1x 16-pinos → fontes sem 16 pinos ocultas; e o caso "nenhum compatível".
+- ✅ **ST-003.1 (Regras):** interface `RegraFiltro` (`pcbuilder/analise/filtro/RegraFiltro.java`) com `CategoriaComponente categoriaAfetada()` e `Optional<String> motivoIncompatibilidade(Montagem atual, Componente candidato)` — devolve o motivo quando o item deve ser **ocultado**.
+- ✅ **ST-003.2 (Regras):** implementações `FiltroSoquete` (C01), `FiltroTipoMemoria` (C02), `FiltroSlotsMemoria` (C03), `FiltroSlotArmazenamento` (C04), `FiltroSlotPcie` (C05), `FiltroVideoIntegrado` (C06), `FiltroConectoresFonte` (C10) e `FiltroFonteSuficiente` (C14), mais `FiltroMemoriaECC` (C12, exigido pelos critérios de aceite).
+- ✅ **ST-003.3 (Regras):** `FiltroEtapa` (`pcbuilder/analise/filtro/FiltroEtapa.java`) com `filtrar(categoria, montagem)` devolvendo `ListaFiltrada` (`compativeis`, `ocultos` + motivo, `totalOriginal`).
+- ✅ **ST-003.4 (CLI):** integrar `FiltroEtapa` na `TelaEtapa`, com a contagem de ocultos e o comando `[M]`.
+- ✅ **ST-003.5 (CLI):** mensagem de "nenhum compatível" com o motivo predominante (contagem de motivos) e retorno à etapa anterior.
+- ✅ **ST-003.6 (Teste):** CPU AM5 → só placas AM5; placa DDR5 → só memórias DDR5; GPU 1x 16-pinos → fontes sem 16 pinos ocultas; e o caso "nenhum compatível".
 
 ---
 

@@ -1,9 +1,17 @@
 package pcbuilder.cli;
 
+import java.util.List;
+import java.util.function.Function;
+
+import pcbuilder.analise.filtro.ItemOculto;
+import pcbuilder.analise.filtro.ListaFiltrada;
 import pcbuilder.config.OrdemEtapas;
+import pcbuilder.modelo.Componente;
+import pcbuilder.relatorio.FormatadorMoeda;
 
 /**
- * Cabecalho, barra de progresso e rodape de uma etapa da montagem guiada.
+ * Cabecalho, barra de progresso, lista filtrada e rodape de uma etapa da montagem
+ * guiada.
  *
  * <p>A barra de progresso lista as seis etapas sempre na mesma ordem e marca a etapa
  * atual:</p>
@@ -17,8 +25,20 @@ import pcbuilder.config.OrdemEtapas;
  *   <li>{@code >>[Nome]<<} - etapa atual;</li>
  *   <li>{@code [Nome]} - etapa pendente.</li>
  * </ul>
+ *
+ * <p>A partir da HU-003 a tela tambem sabe desenhar o resultado do filtro: os itens
+ * compativeis numerados, a contagem de ocultos, o comando {@code [M] Ver ocultos} e a
+ * explicacao de uma etapa sem nenhum item compativel.</p>
  */
 public final class TelaEtapa {
+
+    /** Tecla que abre a lista de itens ocultos por incompatibilidade (HU-003). */
+    public static final String COMANDO_OCULTOS = "M";
+    /** Comando de rodape das etapas que tem itens ocultos. */
+    public static final String RODAPE_OCULTOS = "[" + COMANDO_OCULTOS + "] Ver ocultos";
+    /** Mensagem exibida quando o filtro nao deixa nenhum item selecionavel. */
+    public static final String MENSAGEM_SEM_COMPATIVEIS =
+            "Nenhum componente compativel com a sua configuracao ate aqui.";
 
     private static final String CONCLUIDA_ABRE = "[+";
     private static final String ATUAL_ABRE = ">>[";
@@ -71,6 +91,100 @@ public final class TelaEtapa {
             }
         }
         return barra.toString();
+    }
+
+    /**
+     * Lista os itens compativeis de uma etapa filtrada, com a contagem de ocultos.
+     *
+     * <p>Os itens ocultos nao entram na numeracao: so o que esta na lista pode ser
+     * escolhido. Quando existe algum oculto, a linha de contagem anuncia o comando
+     * {@code [M] Ver ocultos}; quem quiser ve-los usa
+     * {@link #imprimirOcultos(ListaFiltrada)}.</p>
+     *
+     * @param lista resultado do filtro da etapa
+     * @param linhaDeApoio texto curto por componente (nucleos, chipset, watts...)
+     */
+    public void imprimirListaFiltrada(ListaFiltrada lista,
+            Function<Componente, String> linhaDeApoio) {
+        imprimirSeparador();
+        terminal.linha(TabelaComponentes.cabecalho());
+        imprimirSeparador();
+        List<Componente> compativeis = lista.getCompativeis();
+        for (int indice = 0; indice < compativeis.size(); indice++) {
+            Componente componente = compativeis.get(indice);
+            String apoio = linhaDeApoio == null ? "" : linhaDeApoio.apply(componente);
+            terminal.linha(TabelaComponentes.linha(
+                    indice + 1,
+                    TabelaComponentes.nomeExibicao(componente),
+                    FormatadorMoeda.reais(componente.getPrecoMedioBRL()),
+                    apoio));
+        }
+        imprimirSeparador();
+        String contagem = textoContagem(lista);
+        if (lista.quantidadeOcultos() > 0) {
+            contagem = contagem + ESPACO_ENTRE_ETAPAS + RODAPE_OCULTOS;
+        }
+        terminal.linha(contagem);
+    }
+
+    /**
+     * Contagem exibida no rodape da lista, por exemplo
+     * {@code 2 componentes compativeis (1 oculto por incompatibilidade)}.
+     *
+     * @param lista resultado do filtro da etapa
+     * @return a linha de contagem pronta para impressao
+     */
+    public static String textoContagem(ListaFiltrada lista) {
+        int compativeis = lista.getCompativeis().size();
+        int ocultos = lista.quantidadeOcultos();
+        String textoCompativeis = compativeis == 1
+                ? "1 componente compativel"
+                : compativeis + " componentes compativeis";
+        String textoOcultos;
+        if (ocultos == 0) {
+            textoOcultos = "nenhum oculto por incompatibilidade";
+        } else if (ocultos == 1) {
+            textoOcultos = "1 oculto por incompatibilidade";
+        } else {
+            textoOcultos = ocultos + " ocultos por incompatibilidade";
+        }
+        return textoCompativeis + " (" + textoOcultos + ")";
+    }
+
+    /**
+     * Mostra os itens que o filtro removeu, com o motivo em uma linha.
+     *
+     * <p>E o comando {@code [M] Ver ocultos}: informativo apenas, os itens nao podem ser
+     * escolhidos.</p>
+     *
+     * @param lista resultado do filtro da etapa
+     */
+    public void imprimirOcultos(ListaFiltrada lista) {
+        imprimirSeparador();
+        List<ItemOculto> ocultos = lista.getOcultos();
+        if (ocultos.isEmpty()) {
+            terminal.linha("Nenhum componente foi ocultado nesta etapa.");
+            return;
+        }
+        terminal.linha("Ocultos por incompatibilidade (" + ocultos.size() + "):");
+        for (ItemOculto oculto : ocultos) {
+            terminal.linha(" " + TabelaComponentes.nomeExibicao(oculto.getComponente())
+                    + " - incompativel: " + oculto.getMotivo());
+        }
+        terminal.linha("Estes itens nao encaixam na sua configuracao e nao podem ser escolhidos.");
+    }
+
+    /**
+     * Explica uma etapa sem nenhum item compativel: mensagem, motivo predominante e o
+     * comando para voltar e trocar a peca anterior.
+     *
+     * @param lista resultado do filtro (vazio em {@code compativeis})
+     */
+    public void imprimirSemCompativeis(ListaFiltrada lista) {
+        terminal.linha(MENSAGEM_SEM_COMPATIVEIS);
+        lista.motivoPredominante()
+                .ifPresent(motivo -> terminal.linha("Motivo predominante: " + motivo));
+        terminal.linha("[0] Voltar para trocar a peca anterior");
     }
 
     /** Separador horizontal da tela. */

@@ -6,9 +6,10 @@ mostra o resumo com os precos. A base tem **17.230 componentes** convertidos do
 catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de dados
 (o catalogo original nao fica no repositorio — ver `docs/base-mockada.md`).
 
-**Status:** **HU-001** (carregar e validar a base mockada) e **HU-002** (menu
-principal + etapa 1, escolha do processador) implementadas. As etapas 2 a 6 chegam
-nas HUs 005 a 009.
+**Status:** **HU-001** (carregar e validar a base mockada), **HU-002** (menu
+principal + etapa 1, escolha do processador) e **HU-003** (filtro de compatibilidade
+dura) implementadas. As telas das etapas 2 a 6 chegam nas HUs 005 a 009 e os avisos de
+limitacao (`[!]`) na HU-004.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -16,6 +17,12 @@ nas HUs 005 a 009.
   `AVISO` (registro usavel com ressalva).
 * A montagem guiada guarda as pecas em `Montagem` (`Map<CategoriaComponente,
   Componente>`) e a ordem fixa das 6 etapas fica em `config/OrdemEtapas`.
+* O **filtro de compatibilidade** (`analise/filtro/`) aplica as regras duras C01, C02,
+  C03, C04, C05, C06, C10, C12 e C14 antes de listar: o que nao encaixa fica em
+  `[M] Ver ocultos`, com o motivo em uma linha (`soquete AM5 x processador LGA1700`).
+  Nenhum item e escondido por desempenho - frequencia, VRM e gargalo sao avisos da
+  HU-004.
+* Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * O usuario leigo so digita **numeros de opcao**: nenhuma especificacao tecnica e
   pedida e nenhuma peca e escolhida automaticamente.
 
@@ -24,9 +31,10 @@ nas HUs 005 a 009.
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 e 002
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001, 002 e 003
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
+./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
 ```
 
 Windows (Prompt de Comando):
@@ -53,6 +61,19 @@ Apos o `[1]`, a etapa 1 lista os **265 processadores** do catalogo com `#`, `Mod
 escolha e feita pelo numero da opcao e o programa imprime
 `Processador selecionado: AMD Ryzen 7 9700X - R$ 1.919,90`.
 
+Ao avancar, a etapa 2 ja aplica o filtro de compatibilidade (HU-003) e mostra quantas
+placas-mae encaixam no processador escolhido:
+
+```
+=== Etapa 2 de 6 - Placa-Mae (obrigatorio) ===
+[+Processador]   >>[Placa-mae]<<   [Memoria]   [Video]   [Armazenamento]   [Fonte]
+Filtro da proxima etapa: 598 componentes compativeis (1405 ocultos por incompatibilidade).
+As etapas 2 a 6 entram nas HUs 005 a 009. Voltando ao menu principal.
+```
+
+A tela completa de escolha da placa-mae (com `[M] Ver ocultos` e `[0] Voltar`) chega na
+HU-005; ate la o programa volta ao menu principal.
+
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 
 ## Base de componentes
@@ -72,8 +93,8 @@ Para regera-lo a partir do catalogo (pasta `../buildcores-open-db`):
 ## Estrutura
 
 ```
-src/main/java/pcbuilder/     Main.java, cli/, cli/etapas/, config/, enums/, json/,
-                             mock/, modelo/, relatorio/, servico/
+src/main/java/pcbuilder/     Main.java, analise/, analise/filtro/, cli/, cli/etapas/,
+                             config/, enums/, json/, mock/, modelo/, relatorio/, servico/
 src/main/resources/base/     componentes.json (base gerada)
 src/test/java/pcbuilder/     testes (JDK puro, sem JUnit)
 tools/java/pcbuilder/        conversor OpenDB -> componentes.json

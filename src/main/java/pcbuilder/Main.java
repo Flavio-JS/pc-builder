@@ -16,6 +16,8 @@ import pcbuilder.servico.ResultadoValidacao;
  *   <li>imprimir o resumo da carga;</li>
  *   <li>com {@code --validar-base}, listar os problemas e devolver o codigo de
  *       saida {@code 2} quando existir pelo menos um {@code ERRO};</li>
+ *   <li>com {@code --explicar-filtro}, escrever no {@code stderr} cada item ocultado
+ *       pelo filtro de compatibilidade (HU-003), para depuracao;</li>
  *   <li>sem argumentos, abrir o {@link MenuPrincipal} com a montagem guiada
  *       (HU-002).</li>
  * </ol>
@@ -33,6 +35,9 @@ public final class Main {
     public static final int SAIDA_BASE_INVALIDA = 2;
 
     private static final String OPCAO_VALIDAR_BASE = "--validar-base";
+    private static final String OPCAO_EXPLICAR_FILTRO = "--explicar-filtro";
+    private static final String USO =
+            "Uso: java pcbuilder.Main [--validar-base] [--explicar-filtro]";
 
     private Main() {
         // classe utilitaria: nao deve ser instanciada
@@ -53,13 +58,16 @@ public final class Main {
      */
     public static int executar(String[] args) {
         boolean validarBase = false;
+        boolean explicarFiltro = false;
         if (args != null) {
             for (String argumento : args) {
                 if (OPCAO_VALIDAR_BASE.equals(argumento)) {
                     validarBase = true;
+                } else if (OPCAO_EXPLICAR_FILTRO.equals(argumento)) {
+                    explicarFiltro = true;
                 } else {
                     System.err.println("Opcao desconhecida: " + argumento);
-                    System.err.println("Uso: java pcbuilder.Main [--validar-base]");
+                    System.err.println(USO);
                     return SAIDA_ERRO_USO;
                 }
             }
@@ -86,7 +94,7 @@ public final class Main {
         }
 
         Terminal terminal = new Terminal();
-        return new MenuPrincipal(catalogo, terminal).executar();
+        return new MenuPrincipal(catalogo, terminal, explicarFiltro).executar();
     }
 
     private static void imprimirProblemas(ResultadoValidacao resultado) {
