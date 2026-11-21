@@ -82,6 +82,19 @@ public final class Montagem {
     }
 
     /**
+     * Remove a peca da categoria (etapa opcional) e descarta os avisos ligados a ela.
+     *
+     * @param categoria categoria da peca a remover
+     * @return a peca removida, quando existia
+     */
+    public Optional<Componente> remover(CategoriaComponente categoria) {
+        Objects.requireNonNull(categoria, "categoria");
+        Componente removida = pecas.remove(categoria);
+        limparLimitacoesDe(categoria);
+        return Optional.ofNullable(removida);
+    }
+
+    /**
      * Registra os avisos aceitos pelo usuario (HU-004).
      *
      * @param novas limitacoes a acumular, na ordem em que foram exibidas

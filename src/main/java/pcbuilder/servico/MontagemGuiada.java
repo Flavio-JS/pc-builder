@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import pcbuilder.config.OrdemEtapas;
 import pcbuilder.enums.CategoriaComponente;
+import pcbuilder.modelo.Componente;
 import pcbuilder.modelo.Montagem;
 
 /**
@@ -96,6 +97,44 @@ public final class MontagemGuiada {
             etapaAtual--;
         }
         return etapaAtual;
+    }
+
+    /**
+     * Reabre uma etapa ja percorrida (HU-011).
+     *
+     * <p>Ao voltar ao resumo, o fluxo continua apontando para a etapa reaberta; quem
+     * chamou decide o que fazer depois (o menu principal recompoe o resumo).</p>
+     *
+     * @param etapa numero da etapa (1 a 6)
+     * @return o numero da etapa reaberta
+     * @throws IllegalArgumentException quando a etapa esta fora do fluxo
+     */
+    public int reabrirEtapa(int etapa) {
+        if (etapa < 1 || etapa > OrdemEtapas.TOTAL_ETAPAS) {
+            throw new IllegalArgumentException("Etapa fora do fluxo guiado: " + etapa);
+        }
+        this.etapaAtual = etapa;
+        return etapaAtual;
+    }
+
+    /**
+     * Substitui a peca de uma categoria preservando as demais (HU-011).
+     *
+     * <p>A validacao das regras duras depois da troca fica com o
+     * {@code RevalidadorMontagem}; aqui so a peca e trocada.</p>
+     *
+     * @param categoria categoria da peca
+     * @param componente nova peca (precisa ser da mesma categoria)
+     * @throws IllegalArgumentException quando a peca e de outra categoria
+     */
+    public void substituir(CategoriaComponente categoria, Componente componente) {
+        Objects.requireNonNull(categoria, "categoria");
+        Objects.requireNonNull(componente, "componente");
+        if (componente.getCategoria() != categoria) {
+            throw new IllegalArgumentException("Peca " + componente.getCategoria()
+                    + " nao substitui a categoria " + categoria);
+        }
+        montagem.adicionar(componente);
     }
 
     /** A etapa informada ja foi percorrida? */

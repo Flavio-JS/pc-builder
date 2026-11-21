@@ -127,9 +127,12 @@ public final class SelecaoFiltrada {
                 tela.imprimirAvisosDaMontagem(fluxo.getMontagem());
                 continue;
             }
-            Runnable extra = opcoes.comandoExtra(comando);
+            ComandoExtra extra = opcoes.comandoExtra(comando);
             if (extra != null) {
-                extra.run();
+                Optional<ResultadoEtapa> resultadoExtra = extra.executar();
+                if (resultadoExtra.isPresent()) {
+                    return resultadoExtra.get();
+                }
                 continue;
             }
 
@@ -138,8 +141,16 @@ public final class SelecaoFiltrada {
                 terminal.linha(MENSAGEM_OPCAO_INVALIDA);
                 continue;
             }
-            selecionar(fluxo.getMontagem(), categoria, escolhido.get(),
-                    avisos.getOrDefault(escolhido.get(), List.of()), mensagemSelecionada);
+            Componente novo = escolhido.get();
+            Optional<Componente> atual = fluxo.getMontagem().obter(categoria);
+            if (atual.isPresent() && !Objects.equals(atual.get(), novo)
+                    && !terminal.confirmar("Trocar "
+                            + TabelaComponentes.nomeExibicao(atual.get()) + " por "
+                            + TabelaComponentes.nomeExibicao(novo) + "?")) {
+                continue;
+            }
+            selecionar(fluxo.getMontagem(), categoria, novo,
+                    avisos.getOrDefault(novo, List.of()), mensagemSelecionada);
             return ResultadoEtapa.CONCLUIDA;
         }
     }
@@ -212,6 +223,19 @@ public final class SelecaoFiltrada {
         }
     }
 
+    /** O que um comando extra da etapa faz: imprimir algo e continuar, ou encerrar a etapa. */
+    @FunctionalInterface
+    public interface ComandoExtra {
+
+        /**
+         * Executa o comando.
+         *
+         * @return o resultado da etapa quando o comando encerra a selecao; vazio para
+         *         apenas imprimir e continuar na lista
+         */
+        Optional<ResultadoEtapa> executar();
+    }
+
     /**
      * Textos e comandos proprios de uma etapa.
      *
@@ -225,7 +249,7 @@ public final class SelecaoFiltrada {
         private final String mensagemSemCompativeis;
         private final String linhaZeroSemCompativeis;
         private final String mensagemInicial;
-        private final Map<String, Runnable> comandosExtras;
+        private final Map<String, ComandoExtra> comandosExtras;
 
         /**
          * @param rodapeZero comando {@code [0] ...} exibido no rodape da lista
@@ -248,7 +272,7 @@ public final class SelecaoFiltrada {
          */
         public Opcoes(String rodapeZero, String mensagemSemCompativeis,
                 String linhaZeroSemCompativeis, String mensagemInicial,
-                Map<String, Runnable> comandosExtras) {
+                Map<String, ComandoExtra> comandosExtras) {
             this.rodapeZero = Objects.requireNonNull(rodapeZero, "rodapeZero");
             this.mensagemSemCompativeis = Objects.requireNonNull(mensagemSemCompativeis,
                     "mensagemSemCompativeis");
@@ -286,7 +310,7 @@ public final class SelecaoFiltrada {
          * @param comando texto digitado (comparado sem diferenciar maiusculas)
          * @return a acao, ou {@code null} quando a tecla nao tem comando extra
          */
-        public Runnable comandoExtra(String comando) {
+        public ComandoExtra comandoExtra(String comando) {
             if (comando == null) {
                 return null;
             }

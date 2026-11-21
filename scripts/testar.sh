@@ -21,3 +21,4 @@ java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaPlac
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaArmazenamentoTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaFonteTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.ResumoMontagemTeste
+java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.TrocaPecaTeste

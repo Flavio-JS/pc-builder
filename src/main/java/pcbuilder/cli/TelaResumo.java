@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 import pcbuilder.analise.limitacao.TextosLimitacao;
+import pcbuilder.config.OrdemEtapas;
 import pcbuilder.modelo.Limitacao;
 import pcbuilder.relatorio.FormatadorMoeda;
 import pcbuilder.relatorio.ResumoMontagem;
@@ -28,8 +29,11 @@ public final class TelaResumo {
     public static final String RODAPE = "[T] Trocar uma peca   [N] Nova montagem   [0] Sair";
     /** Mensagem de comando invalido. */
     public static final String MENSAGEM_OPCAO_INVALIDA = "Digite uma das opcoes.";
-    /** Texto provisorio do comando de troca (implementado na HU-011). */
-    public static final String MENSAGEM_TROCA = "A troca de peca entra na HU-011.";
+    /** Titulo da lista de etapas para troca (HU-011). */
+    public static final String TITULO_TROCA = "=== Trocar uma peca ===";
+    /** Mensagem de etapa invalida na lista de troca. */
+    public static final String MENSAGEM_ETAPA_INVALIDA =
+            "Digite o numero da etapa ou 0 para voltar.";
 
     /** Comando que inicia uma nova montagem. */
     public static final String COMANDO_NOVA = "N";
@@ -40,6 +44,7 @@ public final class TelaResumo {
 
     /** O que o usuario escolheu no rodape. */
     public enum Resultado {
+        TROCAR,
         NOVA_MONTAGEM,
         SAIR
     }
@@ -112,10 +117,44 @@ public final class TelaResumo {
                 return Resultado.SAIR;
             }
             if (COMANDO_TROCAR.equals(comando)) {
-                terminal.linha(MENSAGEM_TROCA);
-                continue;
+                return Resultado.TROCAR;
             }
             terminal.linha(MENSAGEM_OPCAO_INVALIDA);
+        }
+    }
+
+    /**
+     * Lista as seis etapas com a peca atual e o preco e pede qual reabrir (HU-011).
+     *
+     * @param resumo resumo atual
+     * @return o numero da etapa escolhida (1 a 6) ou {@code 0} para voltar ao resumo
+     */
+    public int escolherEtapa(ResumoMontagem resumo) {
+        while (true) {
+            terminal.linha(TITULO_TROCA);
+            for (ResumoMontagem.LinhaResumo linha : resumo.getLinhas()) {
+                String preco = linha.isSelecionada()
+                        ? " - " + FormatadorMoeda.reais(linha.getPreco())
+                        : "";
+                terminal.linha(" " + linha.getEtapa() + ") "
+                        + linha.getCategoria().getRotulo() + " - "
+                        + linha.getPeca() + preco);
+            }
+            terminal.linha("[0] Voltar");
+
+            Optional<String> entrada = terminal.perguntar(">");
+            if (entrada.isEmpty()) {
+                return 0;
+            }
+            try {
+                int etapa = Integer.parseInt(entrada.get());
+                if (etapa >= 0 && etapa <= OrdemEtapas.TOTAL_ETAPAS) {
+                    return etapa;
+                }
+            } catch (NumberFormatException causa) {
+                // cai na mensagem abaixo
+            }
+            terminal.linha(MENSAGEM_ETAPA_INVALIDA);
         }
     }
 }

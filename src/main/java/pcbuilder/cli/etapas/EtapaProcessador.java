@@ -27,9 +27,10 @@ import pcbuilder.servico.MontagemGuiada;
  * <p>Comandos desta etapa:</p>
  * <ul>
  *   <li>numero da lista - escolhe o processador e guarda na montagem;</li>
- *   <li>{@code [L] Avisos} - relê os avisos de limitacao ja acumulados (HU-004);</li>
+ *   <li>{@code [L] Avisos} - rele os avisos de limitacao ja acumulados (HU-004);</li>
  *   <li>{@code [0] Cancelar montagem} - pede confirmacao {@code S/N} e, se confirmado,
- *       descarta a montagem e volta ao menu principal.</li>
+ *       descarta a montagem e volta ao menu principal. Ao ser reaberta pelo resumo
+ *       (HU-011), a etapa mostra {@code [0] Voltar} e nao descarta nada.</li>
  * </ul>
  */
 public final class EtapaProcessador {
@@ -48,6 +49,7 @@ public final class EtapaProcessador {
     private final List<Componente> processadores;
     private final TelaEtapa tela;
     private final AvaliadorLimitacoes avaliador;
+    private final boolean aPartirDoResumo;
 
     /**
      * @param terminal entrada e saida do programa
@@ -67,11 +69,25 @@ public final class EtapaProcessador {
      */
     public EtapaProcessador(Terminal terminal, MontagemGuiada fluxo,
             List<Componente> processadores, AvaliadorLimitacoes avaliador) {
+        this(terminal, fluxo, processadores, avaliador, false);
+    }
+
+    /**
+     * @param terminal entrada e saida do programa
+     * @param fluxo montagem em andamento (a CPU escolhida e guardada nela)
+     * @param processadores todos os processadores do catalogo, na ordem da base
+     * @param avaliador avaliador de limitacoes usado ao selecionar a peca
+     * @param aPartirDoResumo {@code true} quando a etapa foi reaberta pela HU-011
+     */
+    public EtapaProcessador(Terminal terminal, MontagemGuiada fluxo,
+            List<Componente> processadores, AvaliadorLimitacoes avaliador,
+            boolean aPartirDoResumo) {
         this.terminal = terminal;
         this.fluxo = fluxo;
         this.processadores = processadores == null ? List.of() : List.copyOf(processadores);
         this.tela = new TelaEtapa(terminal);
         this.avaliador = Objects.requireNonNull(avaliador, "avaliador");
+        this.aPartirDoResumo = aPartirDoResumo;
     }
 
     /**
@@ -100,6 +116,9 @@ public final class EtapaProcessador {
 
             String comando = entrada.get();
             if (COMANDO_CANCELAR.equals(comando)) {
+                if (aPartirDoResumo) {
+                    return ResultadoEtapa.VOLTAR;
+                }
                 if (confirmarCancelamento()) {
                     return ResultadoEtapa.CANCELADA;
                 }
@@ -137,7 +156,7 @@ public final class EtapaProcessador {
         terminal.linha(quantidade + (quantidade == 1
                 ? " processador disponivel."
                 : " processadores disponiveis."));
-        tela.imprimirRodape(RODAPE);
+        tela.imprimirRodape(aPartirDoResumo ? SelecaoFiltrada.RODAPE_VOLTAR : RODAPE);
     }
 
     /**

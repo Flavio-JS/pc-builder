@@ -3,6 +3,7 @@ package pcbuilder.cli;
 import java.util.Optional;
 
 import pcbuilder.analise.filtro.FiltroEtapa;
+import pcbuilder.analise.filtro.RevalidadorMontagem;
 import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
 import pcbuilder.cli.etapas.EtapaArmazenamento;
 import pcbuilder.cli.etapas.EtapaFonte;
@@ -105,8 +106,9 @@ public final class MenuPrincipal {
     /**
      * Executa uma montagem completa e mostra o resumo.
      *
-     * <p>{@code [N] Nova montagem} recomeca o fluxo com uma montagem vazia;
-     * {@code [0] Sair} encerra a aplicacao.</p>
+     * <p>{@code [T] Trocar uma peca} reabre uma etapa preservando as demais;
+     * {@code [N] Nova montagem} recomeca com uma montagem vazia; {@code [0] Sair}
+     * encerra a aplicacao.</p>
      *
      * @return {@code true} quando o usuario escolheu sair no resumo
      */
@@ -118,16 +120,24 @@ public final class MenuPrincipal {
                 return false;
             }
 
-            ResumoMontagem resumo = new ResumoMontagem(fluxo.getMontagem());
-            TelaResumo telaResumo = new TelaResumo(terminal);
-            if (!resumo.completa()) {
-                telaResumo.imprimirPendencias(resumo);
-                return false;
+            TelaResumo tela = new TelaResumo(terminal);
+            boolean novaMontagem = false;
+            while (!novaMontagem) {
+                ResumoMontagem resumo = new ResumoMontagem(fluxo.getMontagem());
+                if (!resumo.completa()) {
+                    tela.imprimirPendencias(resumo);
+                    return false;
+                }
+                TelaResumo.Resultado resultado = tela.executar(resumo);
+                if (resultado == TelaResumo.Resultado.SAIR) {
+                    return true;
+                }
+                if (resultado == TelaResumo.Resultado.NOVA_MONTAGEM) {
+                    novaMontagem = true;
+                } else if (resultado == TelaResumo.Resultado.TROCAR) {
+                    trocarPeca(fluxo);
+                }
             }
-            if (telaResumo.executar(resumo) == TelaResumo.Resultado.SAIR) {
-                return true;
-            }
-            // NOVA_MONTAGEM: o laco recomeca com uma montagem vazia.
         }
     }
 
@@ -139,84 +149,83 @@ public final class MenuPrincipal {
      */
     private boolean executarEtapas(MontagemGuiada fluxo) {
         while (!fluxo.concluir()) {
-            CategoriaComponente categoria = fluxo.categoriaAtual();
-            if (categoria == CategoriaComponente.CPU) {
-                EtapaProcessador etapa = new EtapaProcessador(terminal, fluxo,
-                        catalogo.porCategoria(CategoriaComponente.CPU), avaliador);
-                if (etapa.executar() != ResultadoEtapa.CONCLUIDA) {
-                    return false;
-                }
+            ResultadoEtapa resultado = executarEtapa(fluxo, false);
+            if (resultado == ResultadoEtapa.CONCLUIDA) {
                 fluxo.proximaEtapa();
                 continue;
             }
-            if (categoria == CategoriaComponente.PLACA_MAE) {
-                EtapaPlacaMae etapa = new EtapaPlacaMae(terminal, fluxo, filtro, avaliador);
-                ResultadoEtapa resultado = etapa.executar();
-                if (resultado == ResultadoEtapa.VOLTAR) {
-                    fluxo.etapaAnterior();
-                    continue;
-                }
-                if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return false;
-                }
-                fluxo.proximaEtapa();
+            if (resultado == ResultadoEtapa.VOLTAR) {
+                fluxo.etapaAnterior();
                 continue;
             }
-            if (categoria == CategoriaComponente.MEMORIA) {
-                EtapaMemoria etapa = new EtapaMemoria(terminal, fluxo, filtro, avaliador);
-                ResultadoEtapa resultado = etapa.executar();
-                if (resultado == ResultadoEtapa.VOLTAR) {
-                    fluxo.etapaAnterior();
-                    continue;
-                }
-                if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return false;
-                }
-                fluxo.proximaEtapa();
-                continue;
-            }
-            if (categoria == CategoriaComponente.PLACA_VIDEO) {
-                EtapaPlacaVideo etapa = new EtapaPlacaVideo(terminal, fluxo, filtro, avaliador);
-                ResultadoEtapa resultado = etapa.executar();
-                if (resultado == ResultadoEtapa.VOLTAR) {
-                    fluxo.etapaAnterior();
-                    continue;
-                }
-                if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return false;
-                }
-                fluxo.proximaEtapa();
-                continue;
-            }
-            if (categoria == CategoriaComponente.ARMAZENAMENTO) {
-                EtapaArmazenamento etapa = new EtapaArmazenamento(terminal, fluxo, filtro,
-                        avaliador);
-                ResultadoEtapa resultado = etapa.executar();
-                if (resultado == ResultadoEtapa.VOLTAR) {
-                    fluxo.etapaAnterior();
-                    continue;
-                }
-                if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return false;
-                }
-                fluxo.proximaEtapa();
-                continue;
-            }
-            if (categoria == CategoriaComponente.FONTE) {
-                EtapaFonte etapa = new EtapaFonte(terminal, fluxo, filtro, avaliador);
-                ResultadoEtapa resultado = etapa.executar();
-                if (resultado == ResultadoEtapa.VOLTAR) {
-                    fluxo.etapaAnterior();
-                    continue;
-                }
-                if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return false;
-                }
-                fluxo.proximaEtapa();
-                continue;
-            }
-            throw new IllegalStateException("Categoria fora do fluxo guiado: " + categoria);
+            return false;
         }
         return true;
+    }
+
+    /**
+     * Executa a tela da etapa atual.
+     *
+     * @param fluxo montagem em andamento
+     * @param aPartirDoResumo {@code true} quando a etapa foi reaberta pelo resumo
+     * @return o resultado informado pela tela
+     */
+    private ResultadoEtapa executarEtapa(MontagemGuiada fluxo, boolean aPartirDoResumo) {
+        CategoriaComponente categoria = fluxo.categoriaAtual();
+        switch (categoria) {
+            case CPU:
+                return new EtapaProcessador(terminal, fluxo,
+                        catalogo.porCategoria(CategoriaComponente.CPU), avaliador,
+                        aPartirDoResumo).executar();
+            case PLACA_MAE:
+                return new EtapaPlacaMae(terminal, fluxo, filtro, avaliador).executar();
+            case MEMORIA:
+                return new EtapaMemoria(terminal, fluxo, filtro, avaliador).executar();
+            case PLACA_VIDEO:
+                return new EtapaPlacaVideo(terminal, fluxo, filtro, avaliador,
+                        aPartirDoResumo).executar();
+            case ARMAZENAMENTO:
+                return new EtapaArmazenamento(terminal, fluxo, filtro, avaliador).executar();
+            case FONTE:
+                return new EtapaFonte(terminal, fluxo, filtro, avaliador).executar();
+            default:
+                throw new IllegalStateException("Categoria fora do fluxo guiado: " + categoria);
+        }
+    }
+
+    /**
+     * Troca uma peca a partir do resumo (HU-011).
+     *
+     * <p>Reabre a etapa escolhida, preserva as demais pecas e, se a troca invalidar
+     * outra etapa, mostra a mensagem e leva o usuario direto a ela. O resumo e
+     * recalculado por quem chamou.</p>
+     *
+     * @param fluxo montagem completa em andamento
+     */
+    private void trocarPeca(MontagemGuiada fluxo) {
+        TelaResumo tela = new TelaResumo(terminal);
+        int etapa = tela.escolherEtapa(new ResumoMontagem(fluxo.getMontagem()));
+        if (etapa == 0) {
+            return;
+        }
+        fluxo.reabrirEtapa(etapa);
+
+        RevalidadorMontagem revalidador = new RevalidadorMontagem();
+        while (true) {
+            ResultadoEtapa resultado = executarEtapa(fluxo, true);
+            if (resultado != ResultadoEtapa.CONCLUIDA) {
+                return;
+            }
+            Optional<RevalidadorMontagem.EtapaInvalida> invalida =
+                    revalidador.primeiraInvalida(fluxo.getMontagem());
+            if (invalida.isEmpty()) {
+                return;
+            }
+            RevalidadorMontagem.EtapaInvalida problema = invalida.get();
+            terminal.linha("Configuracao invalida: a etapa " + problema.getEtapa()
+                    + " (" + problema.getCategoria().getRotulo()
+                    + ") precisa ser revista - " + problema.getMotivo());
+            fluxo.reabrirEtapa(problema.getEtapa());
+        }
     }
 }

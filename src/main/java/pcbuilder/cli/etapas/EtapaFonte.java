@@ -2,6 +2,7 @@ package pcbuilder.cli.etapas;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import pcbuilder.analise.CalculadoraConsumo;
 import pcbuilder.analise.RequisitosFonte;
@@ -94,7 +95,7 @@ public final class EtapaFonte {
     }
 
     /** Comando {@code [C]}: detalha a soma do consumo componente por componente. */
-    private void imprimirCalculo() {
+    private Optional<ResultadoEtapa> imprimirCalculo() {
         Montagem montagem = fluxo.getMontagem();
         TelaEtapa tela = new TelaEtapa(terminal);
         tela.imprimirSeparador();
@@ -105,5 +106,6 @@ public final class EtapaFonte {
         terminal.linha("  Total - " + CalculadoraConsumo.consumoTotalSistemaWatts(montagem)
                 + " W (com margem de " + ParametrosCalculo.margemSegurancaPercentual()
                 + "%: " + RequisitosFonte.potenciaNecessariaWatts(montagem) + " W)");
+        return Optional.empty();
     }
 }

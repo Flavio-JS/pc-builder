@@ -211,11 +211,9 @@ public final class ResumoMontagemTeste {
         Assercao.iguais("resumo: [0] encerra", TelaResumo.Resultado.SAIR,
                 new TelaResumo(sair.terminal).executar(resumo));
 
-        Saida troca = new Saida("T\n0\n");
-        Assercao.iguais("resumo: [T] depois [0] encerra", TelaResumo.Resultado.SAIR,
+        Saida troca = new Saida("T\n");
+        Assercao.iguais("resumo: [T] pede a troca de peca", TelaResumo.Resultado.TROCAR,
                 new TelaResumo(troca.terminal).executar(resumo));
-        Assercao.verdadeiro("resumo: [T] explica a HU-011",
-                troca.texto().contains(TelaResumo.MENSAGEM_TROCA));
 
         Saida invalida = new Saida("X\n0\n");
         Assercao.iguais("resumo: comando invalido nao encerra antes", TelaResumo.Resultado.SAIR,

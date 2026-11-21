@@ -74,6 +74,18 @@ public final class FiltroEtapa {
     }
 
     /**
+     * Regras duras na ordem de avaliacao.
+     *
+     * <p>Usadas pela tela de cada etapa e pela revalidacao da montagem inteira (HU-011),
+     * para que filtro e revalidacao nunca divirjam.</p>
+     *
+     * @return as regras padrao (lista imutavel)
+     */
+    public static List<RegraFiltro> regrasPadrao() {
+        return REGRAS_PADRAO;
+    }
+
+    /**
      * Separa os componentes da categoria em compativeis e ocultos.
      *
      * @param categoria categoria que a etapa esta listando

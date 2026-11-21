@@ -447,6 +447,8 @@ PARA QUE eu saiba exatamente o que vou comprar e quanto vai custar.
 
 ### HU-011: Trocar uma peça a partir do resumo
 
+**Status:** ✅ implementada — `[T]` em `TelaResumo` (`escolherEtapa`), reabertura da etapa via `MontagemGuiada.reabrirEtapa`, `Montagem.remover` + `[R] Remover peca` na GPU opcional, confirmação `S/N` em `SelecaoFiltrada` e revalidação em `pcbuilder/analise/filtro/RevalidadorMontagem.java`.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que viu o resumo e não gostou de uma peça (ou do preço),
@@ -468,11 +470,11 @@ PARA QUE eu ajuste a configuração sem refazer as outras cinco escolhas.
 - `[0] Voltar` retorna ao resumo sem alterar nada.
 
 **Tarefas:**
-- ⬜ **ST-011.1 (Regras):** `MontagemGuiada.reabrirEtapa(int etapa)` e `substituir(categoria, componente)` preservando as demais categorias.
-- ⬜ **ST-011.2 (Regras):** `RevalidadorMontagem` (`pcbuilder/analise/filtro/RevalidadorMontagem.java`) rodando as regras duras (inclusive C10/C14) sobre as peças **já escolhidas** e devolvendo as etapas inválidas com o motivo.
-- ⬜ **ST-011.3 (CLI):** ação `[T]` na `TelaResumo`, `[R] Remover` nas etapas opcionais e navegação de volta ao resumo.
+- ✅ **ST-011.1 (Regras):** `MontagemGuiada.reabrirEtapa(int etapa)` e `substituir(categoria, componente)` preservando as demais categorias. *(A confirmação `S/N` fica na camada CLI, em `SelecaoFiltrada`, quando a categoria já tem peça.)*
+- ✅ **ST-011.2 (Regras):** `RevalidadorMontagem` (`pcbuilder/analise/filtro/RevalidadorMontagem.java`) rodando as regras duras (inclusive C10/C14) sobre as peças **já escolhidas** e devolvendo as etapas inválidas com o motivo (C06 também cobre CPU sem iGPU e sem GPU).
+- ✅ **ST-011.3 (CLI):** ação `[T]` na `TelaResumo`, `[R] Remover` nas etapas opcionais e navegação de volta ao resumo (`[0] Voltar`, sem cancelar a montagem).
 - ✅ **ST-011.4 (Regras):** `Montagem.limparLimitacoesDe(categoria)` para descartar os avisos da peça substituída. *(Método criado junto com a HU-004, que acumula os avisos na montagem; a troca de peça em si continua na HU-011.)*
-- ⬜ **ST-011.5 (Teste):** trocar só a RAM mantendo o resto; trocar CPU para outro soquete (etapa 2 apontada); trocar GPU por uma que exige 16 pinos com fonte de 8 pinos (etapa 6 apontada); remover GPU em CPU com iGPU; total recalculado.
+- ✅ **ST-011.5 (Teste):** trocar só a RAM mantendo o resto; trocar CPU para outro soquete (etapa 2 apontada); trocar GPU por uma que exige 16 pinos com fonte de 8 pinos (etapa 6 apontada); remover GPU em CPU com iGPU; total recalculado. *(58 verificações em `TrocaPecaTeste`, incluindo a confirmação `S/N` e o fluxo completo pelo menu.)*
 
 ---
 

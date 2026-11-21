@@ -10,8 +10,8 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
 dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae),
 **HU-006** (etapa 3, memoria), **HU-007** (etapa 4, placa de video condicional),
-**HU-008** (etapa 5, armazenamento), **HU-009** (etapa 6, fonte) e **HU-010** (resumo
-final) implementadas. A troca de peca a partir do resumo chega na HU-011.
+**HU-008** (etapa 5, armazenamento), **HU-009** (etapa 6, fonte), **HU-010** (resumo
+final) e **HU-011** (troca de peca no resumo) implementadas.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -49,6 +49,14 @@ final) implementadas. A troca de peca a partir do resumo chega na HU-011.
 * **Resumo final** com tabela `Etapa | Categoria | Peca escolhida | Preco (R$)`, total em
   `BigDecimal`, `(nao selecionado)` na GPU pulada, nota para peca sem preco, bloco
   `Avisos: N` e rodape `[T] Trocar uma peca`, `[N] Nova montagem` e `[0] Sair`.
+* **Troca de peca (HU-011)** com `[T]`: lista as 6 etapas com a peca atual e o preco,
+  reabre so a etapa escolhida (as outras pecas ficam), pede `S/N` quando a categoria ja
+  tem peca, descarta os avisos da peca substituida e recalcula o total. Depois da troca,
+  o `RevalidadorMontagem` roda as regras duras sobre as pecas ja escolhidas e, se a nova
+  peca invalidar outra etapa, o resumo nao e liberado: o programa mostra
+  `Configuracao invalida: a etapa 2 (Placa-Mae) precisa ser revista - ...` e leva o
+  usuario direto a etapa apontada. Na etapa 4 opcional ja preenchida existe
+  `[R] Remover peca`, que volta a `(nao selecionado)`.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * Com `--detalhar-limitacoes`, ao selecionar uma peca o programa imprime os dados que
   faltam para calcular alguma regra (`Sem dados para calcular: ...`).
@@ -60,7 +68,7 @@ final) implementadas. A troca de peca a partir do resumo chega na HU-011.
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 010
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 011
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
@@ -221,8 +229,13 @@ Avisos: 2
 [T] Trocar uma peca   [N] Nova montagem   [0] Sair
 ```
 
-`[N]` recomeca o fluxo com uma montagem vazia e `[0]` encerra. O `[T]` fica como marcador
-ate a HU-011.
+`[T]` lista as 6 etapas com a peca atual e o preco (`1) Processador - ... - R$
+2.529,90`), reabre a etapa escolhida com o filtro e os avisos recalculados e preserva as
+demais pecas; `[N]` recomeca o fluxo com uma montagem vazia e `[0]` encerra. A troca
+pede confirmacao `S/N` quando a peca ja existe, descarta os avisos da peca substituida,
+revalida a montagem inteira (levando a etapa apontada quando a troca invalida outra peca)
+e recalcula o total. `[0] Voltar` dentro da etapa reaberta retorna ao resumo sem alterar
+nada.
 
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 
