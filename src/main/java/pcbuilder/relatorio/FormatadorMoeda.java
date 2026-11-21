@@ -23,6 +23,19 @@ public final class FormatadorMoeda {
     }
 
     /**
+     * Formata o valor com duas casas decimais, sem o simbolo (para colunas de tabela).
+     *
+     * @param valor preco do componente, pode ser {@code null}
+     * @return {@code 2.199,00} ou {@link #SEM_PRECO} quando o valor e nulo
+     */
+    public static String numero(BigDecimal valor) {
+        if (valor == null) {
+            return SEM_PRECO;
+        }
+        return formatar(valor);
+    }
+
+    /**
      * Formata o valor com simbolo e duas casas decimais.
      *
      * @param valor preco do componente, pode ser {@code null}
@@ -32,10 +45,14 @@ public final class FormatadorMoeda {
         if (valor == null) {
             return SEM_PRECO;
         }
+        return "R$ " + formatar(valor);
+    }
+
+    private static String formatar(BigDecimal valor) {
         NumberFormat formato = NumberFormat.getNumberInstance(PT_BR);
         formato.setGroupingUsed(true);
         formato.setMinimumFractionDigits(2);
         formato.setMaximumFractionDigits(2);
-        return "R$ " + formato.format(valor);
+        return formato.format(valor);
     }
 }

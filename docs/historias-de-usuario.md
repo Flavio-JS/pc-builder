@@ -318,7 +318,7 @@ PARA QUE eu saiba se estou pagando por desempenho que o meu PC não vai entregar
 
 ### HU-007: Escolher a placa de vídeo (etapa 4 — condicional)
 
-**Status:** ✅ implementada — `EtapaPlacaVideo` com cabeçalho dinâmico (C06), `[0] Pular` quando opcional e `[0] Voltar` quando obrigatória, filtro C05 e avisos L05/L01/L07. A obrigatoriedade fica em `OrdemEtapas.obrigatoria(etapa, montagem)`; `TelaEtapa` usa a montagem para decidir `(obrigatorio|opcional)`. O resumo final com `(nao selecionado)` entra na HU-010.
+**Status:** ✅ implementada — `EtapaPlacaVideo` com cabeçalho dinâmico (C06), `[0] Pular` quando opcional e `[0] Voltar` quando obrigatória, filtro C05 e avisos L05/L01/L07. A obrigatoriedade fica em `OrdemEtapas.obrigatoria(etapa, montagem)`; `TelaEtapa` usa a montagem para decidir `(obrigatorio|opcional)`. O resumo da HU-010 mostra a etapa pulada como `(nao selecionado)`.
 
 *Persona: usuário iniciante (leigo)*
 
@@ -375,7 +375,7 @@ PARA QUE eu escolha sem errar o encaixe e sabendo a diferença de velocidade.
 
 ### HU-009: Escolher a fonte (etapa 6)
 
-**Status:** ✅ implementada — `EtapaFonte` com bloco de consumo/conectores, `[C]` detalhado, filtro C10/C14, avisos L06/L09 e mensagem de "nenhuma fonte compatível" com os requisitos calculados. `RequisitosFonte` é a fonte única dos conectores (cabeçalho e filtro); `CalculadoraConsumo.detalhar` alimenta o `[C]`; `CalculadoraFonte` alimenta L06/L09. A transição para o resumo fica para a HU-010 (por ora o fluxo imprime `Montagem concluida.`).
+**Status:** ✅ implementada — `EtapaFonte` com bloco de consumo/conectores, `[C]` detalhado, filtro C10/C14, avisos L06/L09 e mensagem de "nenhuma fonte compatível" com os requisitos calculados. `RequisitosFonte` é a fonte única dos conectores (cabeçalho e filtro); `CalculadoraConsumo.detalhar` alimenta o `[C]`; `CalculadoraFonte` alimenta L06/L09. Ao escolher, o fluxo mostra o resumo da HU-010.
 
 *Persona: usuário iniciante (leigo)*
 
@@ -417,6 +417,8 @@ Conectores exigidos: 1x 16-pinos (placa de video) + 1x 8-pinos (placa-mae)
 
 ### HU-010: Ver o resumo final com as peças e os preços
 
+**Status:** ✅ implementada — `ResumoMontagem` + `TabelaResumo` (100 colunas) + `TelaResumo`; `ValidadorMontagem` valida as etapas obrigatórias (GPU condicional) e `MenuPrincipal` mostra o resumo ao concluir a fonte, com `[N] Nova montagem` e `[0] Sair`. O `[T] Trocar uma peca` fica como marcador até a HU-011.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que terminou de escolher as 6 peças,
@@ -435,11 +437,11 @@ PARA QUE eu saiba exatamente o que vou comprar e quanto vai custar.
 - O resumo não mostra campos técnicos crus (`tdpWatts`, `vrmFasesCPU`): só o necessário para o leigo decidir.
 
 **Tarefas:**
-- ⬜ **ST-010.1 (Relatório):** `ResumoMontagem` (`pcbuilder/relatorio/ResumoMontagem.java`) com as linhas (etapa, categoria, peça, preço), total e avisos.
-- ⬜ **ST-010.2 (Relatório):** `FormatadorMoeda` (`java.text.NumberFormat` com `Locale("pt","BR")`) e `TabelaResumo` com largura fixa de 100 colunas.
-- ⬜ **ST-010.3 (CLI):** `TelaResumo` (`pcbuilder/cli/TelaResumo.java`) com a tabela, o bloco de avisos e o rodapé de comandos.
-- ⬜ **ST-010.4 (Regras):** validação de "montagem completa" (6 etapas, respeitando a obrigatoriedade condicional da GPU) antes de exibir o resumo.
-- ⬜ **ST-010.5 (Teste):** resumo com GPU pulada; resumo com peça sem preço; total conferido com os preços do mock; montagem incompleta (mensagem de pendências).
+- ✅ **ST-010.1 (Relatório):** `ResumoMontagem` (`pcbuilder/relatorio/ResumoMontagem.java`) com as linhas (etapa, categoria, peça, preço), total e avisos.
+- ✅ **ST-010.2 (Relatório):** `FormatadorMoeda` (`java.text.NumberFormat` com `Locale("pt","BR")`) e `TabelaResumo` com largura fixa de 100 colunas.
+- ✅ **ST-010.3 (CLI):** `TelaResumo` (`pcbuilder/cli/TelaResumo.java`) com a tabela, o bloco de avisos e o rodapé de comandos.
+- ✅ **ST-010.4 (Regras):** validação de "montagem completa" (6 etapas, respeitando a obrigatoriedade condicional da GPU) antes de exibir o resumo.
+- ✅ **ST-010.5 (Teste):** resumo com GPU pulada; resumo com peça sem preço; total conferido com os preços do mock; montagem incompleta (mensagem de pendências).
 
 ---
 

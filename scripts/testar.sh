@@ -20,3 +20,4 @@ java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaMemo
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaPlacaVideoTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaArmazenamentoTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaFonteTeste
+java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.ResumoMontagemTeste

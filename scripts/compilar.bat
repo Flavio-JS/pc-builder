@@ -16,7 +16,7 @@ if errorlevel 1 exit /b 1
 rem Os recursos (base/componentes.json) precisam estar no classpath
 if exist src\main\resources xcopy /E /I /Y src\main\resources build\classes > nul
 
-javac -encoding UTF-8 -sourcepath "src\main\java;src\test\java" -cp build\classes -d build\classes-test src\test\java\pcbuilder\teste\ValidadorCadastroTeste.java src\test\java\pcbuilder\teste\MontagemGuiadaTeste.java src\test\java\pcbuilder\teste\FiltroEtapaTeste.java src\test\java\pcbuilder\teste\LimitacoesTeste.java src\test\java\pcbuilder\teste\EtapaPlacaMaeTeste.java src\test\java\pcbuilder\teste\EtapaMemoriaTeste.java src\test\java\pcbuilder\teste\EtapaPlacaVideoTeste.java src\test\java\pcbuilder\teste\EtapaArmazenamentoTeste.java src\test\java\pcbuilder\teste\EtapaFonteTeste.java
+javac -encoding UTF-8 -sourcepath "src\main\java;src\test\java" -cp build\classes -d build\classes-test src\test\java\pcbuilder\teste\ValidadorCadastroTeste.java src\test\java\pcbuilder\teste\MontagemGuiadaTeste.java src\test\java\pcbuilder\teste\FiltroEtapaTeste.java src\test\java\pcbuilder\teste\LimitacoesTeste.java src\test\java\pcbuilder\teste\EtapaPlacaMaeTeste.java src\test\java\pcbuilder\teste\EtapaMemoriaTeste.java src\test\java\pcbuilder\teste\EtapaPlacaVideoTeste.java src\test\java\pcbuilder\teste\EtapaArmazenamentoTeste.java src\test\java\pcbuilder\teste\EtapaFonteTeste.java src\test\java\pcbuilder\teste\ResumoMontagemTeste.java
 if errorlevel 1 exit /b 1
 
 echo Compilado: build\classes (aplicacao) e build\classes-test (testes).

@@ -10,8 +10,8 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
 dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae),
 **HU-006** (etapa 3, memoria), **HU-007** (etapa 4, placa de video condicional),
-**HU-008** (etapa 5, armazenamento) e **HU-009** (etapa 6, fonte) implementadas. O resumo
-final chega na HU-010.
+**HU-008** (etapa 5, armazenamento), **HU-009** (etapa 6, fonte) e **HU-010** (resumo
+final) implementadas. A troca de peca a partir do resumo chega na HU-011.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -46,6 +46,9 @@ final chega na HU-010.
 * **Etapa 6 (fonte)** mostra consumo com margem de 40% e conectores exigidos, detalha a
   conta com `[C]`, filtra por C10/C14 (potencia e conectores) e marca L06 (pico
   transiente, `RISCO`) e L09 (eficiencia) com `[!]`.
+* **Resumo final** com tabela `Etapa | Categoria | Peca escolhida | Preco (R$)`, total em
+  `BigDecimal`, `(nao selecionado)` na GPU pulada, nota para peca sem preco, bloco
+  `Avisos: N` e rodape `[T] Trocar uma peca`, `[N] Nova montagem` e `[0] Sair`.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * Com `--detalhar-limitacoes`, ao selecionar uma peca o programa imprime os dados que
   faltam para calcular alguma regra (`Sem dados para calcular: ...`).
@@ -57,7 +60,7 @@ final chega na HU-010.
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 009
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 010
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
@@ -199,8 +202,27 @@ Conectores exigidos: 1x 16-pinos (placa de video) + 1x 8-pinos (placa-mae)
 `Total - 401 W (com margem de 40%: 562 W)`). Fonte sem o conector exigido fica em `[M]`
 (`sem conector de 16 pinos (a placa de video exige 1)`) - **nao existe caminho de
 adaptador**. L09 avisa fonte fora de 40-60% de carga e L06 marca `RISCO` quando o pico da
-GPU passa do trilho de 12 V. Ao escolher, imprime `Fonte selecionada: ...` e conclui a
-montagem (`Montagem concluida.` ate a HU-010).
+GPU passa do trilho de 12 V. Ao escolher, imprime `Fonte selecionada: ...` e mostra o
+resumo:
+
+```
+=== Resumo da sua montagem ===
+ Etapa | Categoria        | Peca escolhida                                 |     Preco (R$)
+   1   | Processador      | Intel Core i9 13900T                           |       2.529,90
+   2   | Placa-Mae        | ASUS B760M-AYW D4                              |         949,90
+   3   | Memoria          | TEAMGROUP T-Force Delta                        |         189,90
+   4   | Placa de Video   | (nao selecionado)                              |          R$ --
+   5   | Armazenamento    | Inland Premium PCIe                            |         149,90
+   6   | Fonte            | Antec Earthwatts                               |         299,90
+TOTAL: R$ 4.119,50
+Avisos: 2
+[!] TEAMGROUP T-Force Delta: quantidadePentes 1 pente(s) > 2 canais
+[!] Antec Earthwatts: percentualCargaFonte 26% > 40-60%
+[T] Trocar uma peca   [N] Nova montagem   [0] Sair
+```
+
+`[N]` recomeca o fluxo com uma montagem vazia e `[0]` encerra. O `[T]` fica como marcador
+ate a HU-011.
 
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 

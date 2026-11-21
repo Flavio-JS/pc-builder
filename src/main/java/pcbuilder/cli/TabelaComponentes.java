@@ -1,6 +1,7 @@
 package pcbuilder.cli;
 
 import pcbuilder.modelo.Componente;
+import pcbuilder.relatorio.FormatadorComponente;
 
 /**
  * Monta as listas de componentes em texto, com molduras e largura fixa.
@@ -39,11 +40,7 @@ public final class TabelaComponentes {
      * @return por exemplo {@code AMD Ryzen 7 9700X}
      */
     public static String nomeExibicao(Componente componente) {
-        String fabricante = componente.getFabricante();
-        if (fabricante == null || fabricante.isBlank()) {
-            return componente.getModelo();
-        }
-        return fabricante + " " + componente.getModelo();
+        return FormatadorComponente.nome(componente);
     }
 
     /** Linha de titulo das colunas {@code #}, {@code Modelo}, {@code Preco (R$)} e apoio. */

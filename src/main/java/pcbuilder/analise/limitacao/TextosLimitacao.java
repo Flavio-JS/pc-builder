@@ -117,6 +117,24 @@ public final class TextosLimitacao {
                 + " para se proteger do calor.";
     }
 
+    /**
+     * Uma linha curta para o bloco de avisos do resumo (HU-010).
+     *
+     * <p>Formato: {@code [!] <peca afetada>: <campo> <valor novo> > <valor suportado>}.
+     * Nao repete a consequencia completa - o resumo precisa ser curto.</p>
+     *
+     * @param limitacao aviso acumulado
+     * @return a linha pronta para impressao
+     */
+    public static String resumo(Limitacao limitacao) {
+        String campo = limitacao.getCampoComparado() == null
+                ? ""
+                : limitacao.getCampoComparado() + " ";
+        return MARCADOR + " " + nome(limitacao.getComponenteAfetado()) + ": " + campo
+                + valorOuTraco(limitacao.getValorDoNovo()) + " > "
+                + valorOuTraco(limitacao.getValorSuportado());
+    }
+
     /** C02: o perfil EXPO/XMP do kit nao e suportado pela placa-mae. */
     public static String expo(Memoria memoria, PlacaMae placaMae) {
         Integer jedec = memoria.getFrequenciaJEDECBaseMTs();

@@ -13,6 +13,7 @@ import pcbuilder.cli.etapas.EtapaProcessador;
 import pcbuilder.cli.etapas.ResultadoEtapa;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.mock.CatalogoMock;
+import pcbuilder.relatorio.ResumoMontagem;
 import pcbuilder.servico.MontagemGuiada;
 
 /**
@@ -24,8 +25,9 @@ import pcbuilder.servico.MontagemGuiada;
  * usuario sai do fluxo (cancelou ou a base nao tem a categoria), o menu volta a
  * aparecer.</p>
  *
- * <p>As seis etapas ja existem (HU-002 a HU-009). Ao concluir a etapa 6 o programa
- * imprime {@code Montagem concluida.}; o resumo com pecas e precos entra na HU-010.</p>
+ * <p>As seis etapas ja existem (HU-002 a HU-009). Ao concluir a etapa 6 o programa mostra
+ * o resumo com pecas, precos e avisos (HU-010) e oferece {@code [N] Nova montagem},
+ * {@code [T] Trocar uma peca} e {@code [0] Sair}.</p>
  */
 public final class MenuPrincipal {
 
@@ -86,7 +88,9 @@ public final class MenuPrincipal {
                 return SAIDA_SUCESSO;
             }
             if (OPCAO_MONTAR.equals(opcao)) {
-                montarPc();
+                if (montarPc()) {
+                    return SAIDA_SUCESSO;
+                }
                 continue;
             }
             terminal.linha(MENSAGEM_OPCAO_INVALIDA);
@@ -99,19 +103,48 @@ public final class MenuPrincipal {
     }
 
     /**
-     * Executa as seis etapas do fluxo ate o usuario cancelar ou a montagem terminar.
+     * Executa uma montagem completa e mostra o resumo.
+     *
+     * <p>{@code [N] Nova montagem} recomeca o fluxo com uma montagem vazia;
+     * {@code [0] Sair} encerra a aplicacao.</p>
+     *
+     * @return {@code true} quando o usuario escolheu sair no resumo
      */
-    private void montarPc() {
+    private boolean montarPc() {
         terminal.linhaEmBranco();
-        MontagemGuiada fluxo = new MontagemGuiada();
+        while (true) {
+            MontagemGuiada fluxo = new MontagemGuiada();
+            if (!executarEtapas(fluxo)) {
+                return false;
+            }
 
+            ResumoMontagem resumo = new ResumoMontagem(fluxo.getMontagem());
+            TelaResumo telaResumo = new TelaResumo(terminal);
+            if (!resumo.completa()) {
+                telaResumo.imprimirPendencias(resumo);
+                return false;
+            }
+            if (telaResumo.executar(resumo) == TelaResumo.Resultado.SAIR) {
+                return true;
+            }
+            // NOVA_MONTAGEM: o laco recomeca com uma montagem vazia.
+        }
+    }
+
+    /**
+     * Executa as seis etapas do fluxo.
+     *
+     * @param fluxo montagem em andamento
+     * @return {@code false} quando o usuario cancelou a montagem
+     */
+    private boolean executarEtapas(MontagemGuiada fluxo) {
         while (!fluxo.concluir()) {
             CategoriaComponente categoria = fluxo.categoriaAtual();
             if (categoria == CategoriaComponente.CPU) {
                 EtapaProcessador etapa = new EtapaProcessador(terminal, fluxo,
                         catalogo.porCategoria(CategoriaComponente.CPU), avaliador);
                 if (etapa.executar() != ResultadoEtapa.CONCLUIDA) {
-                    return;
+                    return false;
                 }
                 fluxo.proximaEtapa();
                 continue;
@@ -124,7 +157,7 @@ public final class MenuPrincipal {
                     continue;
                 }
                 if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return;
+                    return false;
                 }
                 fluxo.proximaEtapa();
                 continue;
@@ -137,7 +170,7 @@ public final class MenuPrincipal {
                     continue;
                 }
                 if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return;
+                    return false;
                 }
                 fluxo.proximaEtapa();
                 continue;
@@ -150,7 +183,7 @@ public final class MenuPrincipal {
                     continue;
                 }
                 if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return;
+                    return false;
                 }
                 fluxo.proximaEtapa();
                 continue;
@@ -164,7 +197,7 @@ public final class MenuPrincipal {
                     continue;
                 }
                 if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return;
+                    return false;
                 }
                 fluxo.proximaEtapa();
                 continue;
@@ -177,14 +210,13 @@ public final class MenuPrincipal {
                     continue;
                 }
                 if (resultado != ResultadoEtapa.CONCLUIDA) {
-                    return;
+                    return false;
                 }
                 fluxo.proximaEtapa();
                 continue;
             }
             throw new IllegalStateException("Categoria fora do fluxo guiado: " + categoria);
         }
-
-        terminal.linha("Montagem concluida.");
+        return true;
     }
 }

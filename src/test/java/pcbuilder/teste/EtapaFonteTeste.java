@@ -16,6 +16,7 @@ import pcbuilder.analise.filtro.ListaFiltrada;
 import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
 import pcbuilder.cli.MenuPrincipal;
 import pcbuilder.cli.TabelaComponentes;
+import pcbuilder.cli.TelaResumo;
 import pcbuilder.cli.Terminal;
 import pcbuilder.cli.etapas.EtapaFonte;
 import pcbuilder.cli.etapas.ResultadoEtapa;
@@ -343,7 +344,9 @@ public final class EtapaFonteTeste {
                 texto.contains("Fonte selecionada: "
                         + TabelaComponentes.nomeExibicao(fonte) + " - "
                         + pcbuilder.relatorio.FormatadorMoeda.reais(fonte.getPrecoMedioBRL())));
-        Assercao.verdadeiro("menu: montagem concluida", texto.contains("Montagem concluida."));
+        Assercao.verdadeiro("menu: resumo final exibido", texto.contains(TelaResumo.TITULO));
+        Assercao.verdadeiro("menu: total no resumo", texto.contains("TOTAL: R$"));
+        Assercao.verdadeiro("menu: rodape do resumo", texto.contains(TelaResumo.RODAPE));
     }
 
     // ---------------------------------------------------------------- auxiliares
