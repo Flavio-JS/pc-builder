@@ -6,6 +6,7 @@ import java.util.Locale;
 
 import pcbuilder.analise.CalculadoraPcie;
 import pcbuilder.enums.CategoriaComponente;
+import pcbuilder.enums.TipoMidia;
 import pcbuilder.modelo.Armazenamento;
 import pcbuilder.modelo.Componente;
 import pcbuilder.modelo.Fonte;
@@ -201,6 +202,16 @@ public final class TextosLimitacao {
         return "o slot da placa-mae " + nome(placaMae) + " entrega ate " + capacidadeSlot
                 + " e este armazenamento chega a " + capacidadeMidia + ": perda de "
                 + percentual(perda) + " de velocidade.";
+    }
+
+    /** L10 (informativo): HD mecanico ou SSD SATA em relacao ao SSD NVMe. */
+    public static String midiaLenta(Armazenamento armazenamento) {
+        if (armazenamento.getTipoMidia() == TipoMidia.HDD) {
+            return "este HD mecanico funciona, mas e muito mais lento que um SSD NVMe"
+                    + " (o sistema demora mais para iniciar e os programas carregam devagar).";
+        }
+        return "este SSD SATA funciona, mas e mais lento que um SSD NVMe"
+                + " (a diferenca aparece no tempo de carregamento do sistema e dos jogos).";
     }
 
     /** L11: pistas PCIe da CPU insuficientes para GPU + armazenamento. */

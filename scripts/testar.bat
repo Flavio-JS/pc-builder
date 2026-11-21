@@ -26,3 +26,6 @@ if errorlevel 1 exit /b 1
 
 java -cp "build\classes;build\classes-test" pcbuilder.teste.EtapaPlacaVideoTeste
 if errorlevel 1 exit /b 1
+
+java -cp "build\classes;build\classes-test" pcbuilder.teste.EtapaArmazenamentoTeste
+if errorlevel 1 exit /b 1

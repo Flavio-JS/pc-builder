@@ -9,8 +9,8 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 **Status:** **HU-001** (carregar e validar a base mockada), **HU-002** (menu
 principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
 dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae),
-**HU-006** (etapa 3, memoria) e **HU-007** (etapa 4, placa de video condicional)
-implementadas. As telas das etapas 5 e 6 chegam nas HUs 008 e 009.
+**HU-006** (etapa 3, memoria), **HU-007** (etapa 4, placa de video condicional) e
+**HU-008** (etapa 5, armazenamento) implementadas. A tela da etapa 6 chega na HU-009.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -39,6 +39,9 @@ implementadas. As telas das etapas 5 e 6 chegam nas HUs 008 e 009.
 * **Etapa 4 (placa de video)** condicional ao video integrado da CPU: `(opcional)` com
   `[0] Pular` quando a CPU tem iGPU e `(obrigatorio)` sem pular quando nao tem (C06).
   Filtro C05 e linha de apoio `12 GB GDDR6X | PCIe 4.0 x16 | 220 W | 1x 16-pinos`.
+* **Etapa 5 (armazenamento)** une SSD e HD na mesma lista, filtra por C04 (slot M.2 /
+  porta SATA) e mostra `SSD NVMe M.2 2280 | 2 TB | 7000 MB/s` ou
+  `HD SATA 3.5" | 2 TB | 200 MB/s`; HD/SSD SATA recebem aviso informativo de midia lenta.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * Com `--detalhar-limitacoes`, a previa da proxima etapa imprime o bloco completo de
   cada aviso e os dados que faltam para calcular (`Sem dados para calcular`).
@@ -50,7 +53,7 @@ implementadas. As telas das etapas 5 e 6 chegam nas HUs 008 e 009.
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 007
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 008
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
@@ -157,9 +160,27 @@ para a etapa 5. A linha de apoio e
 obrigatoria, o programa imprime `Nenhuma placa de video compativel com a sua placa-mae.`
 e oferece `[0] Voltar`.
 
-Depois da GPU (ou do pulo), a previa da etapa 5 mostra quantos armazenamentos teriam
-`[!]`; com `--detalhar-limitacoes` cada aviso aparece completo, inclusive os dados que
-faltam para calcular (`Sem dados para calcular`).
+Depois da GPU (ou do pulo), a etapa 5 une SSD e HD na mesma lista e filtra por C04
+(slot M.2 / porta SATA). O que nao encaixa fica em `[M]` com o motivo; a linha de apoio
+mostra midia, capacidade e velocidade:
+
+```
+=== Etapa 5 de 6 - Armazenamento (obrigatorio) ===
+[+Processador]   [+Placa-mae]   [+Memoria]   [+Video]   >>[Armazenamento]<<   [Fonte]
+   1) Inland Premium PCIe                  R$   149,90  SSD NVMe M.2 2280 | 512 GB | 3400 MB/s
+[!]   4) Seagate Barracuda Compute          R$   319,90  HD SATA 3.5" | 2 TB | 190 MB/s
+...
+3322 componentes compativeis (nenhum oculto por incompatibilidade)   2004 com aviso [!]   [L] Avisos
+----------------------------------------------------------------------------------------------------
+[0] Voltar
+```
+
+O `[!]` do HD/SSD SATA e o informativo de midia lenta (mais lento que o NVMe); o L10 de
+banda aparece quando o SSD e de geracao maior que o slot. `[0] Voltar` retorna a etapa 4.
+
+Depois do armazenamento, a previa da etapa 6 (fonte) mostra o consumo calculado e os
+conectores exigidos; com `--detalhar-limitacoes` cada aviso aparece completo, inclusive
+os dados que faltam para calcular (`Sem dados para calcular`).
 
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 

@@ -18,3 +18,4 @@ java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.Limitacoe
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaPlacaMaeTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaMemoriaTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaPlacaVideoTeste
+java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaArmazenamentoTeste

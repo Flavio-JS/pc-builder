@@ -38,6 +38,7 @@ public final class AvaliadorLimitacoes {
             new LimitacaoVram(),
             new LimitacaoEficienciaFonte(),
             new LimitacaoVelocidadeArmazenamento(),
+            new LimitacaoMidiaLenta(),
             new LimitacaoPistasPcie(),
             new LimitacaoGargaloCpuGpu());
 

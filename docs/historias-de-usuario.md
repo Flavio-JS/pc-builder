@@ -348,6 +348,8 @@ PARA QUE eu não compre uma placa desnecessária nem termine com um PC que não 
 
 ### HU-008: Escolher o armazenamento — SSD ou HD (etapa 5)
 
+**Status:** ✅ implementada — `EtapaArmazenamento` com SSD e HD na mesma lista, filtro C04, `[M] Ver ocultos`, `[L] Avisos`, `[0] Voltar` e os avisos L10 (perda de banda e mídia lenta). Como a montagem guarda **um** armazenamento por vez (o candidato substitui o anterior), slots/portas ocupados não descontam além do próprio candidato.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que não diferencia SSD de HD,
@@ -364,10 +366,10 @@ PARA QUE eu escolha sem errar o encaixe e sabendo a diferença de velocidade.
 - Se não houver nenhum item compatível, imprime o motivo predominante (`sem slot M.2 livre` / `sem porta SATA livre`) e oferece `[0] Voltar`.
 
 **Tarefas:**
-- ⬜ **ST-008.1 (CLI):** `EtapaArmazenamento` (`pcbuilder/cli/etapas/EtapaArmazenamento.java`) listando as duas mídias juntas com linha de apoio.
-- ⬜ **ST-008.2 (Regras):** `FiltroSlotArmazenamento` (C04) considerando slots/portas já ocupados.
-- ⬜ **ST-008.3 (Regras):** aviso `L10` (interface × slot) e informativo de mídia, com texto em linguagem simples.
-- ⬜ **ST-008.4 (Teste):** placa com 2 slots M.2 → 2 NVMe permitidos; SATA em placa sem portas → oculto; NVMe PCIe 4.0 em placa com slot 3.0 → aviso; lista vazia com motivo.
+- ✅ **ST-008.1 (CLI):** `EtapaArmazenamento` (`pcbuilder/cli/etapas/EtapaArmazenamento.java`) listando as duas mídias juntas com linha de apoio.
+- ✅ **ST-008.2 (Regras):** `FiltroSlotArmazenamento` (C04) considerando slots/portas já ocupados.
+- ✅ **ST-008.3 (Regras):** aviso `L10` (interface × slot) e informativo de mídia, com texto em linguagem simples.
+- ✅ **ST-008.4 (Teste):** placa com 2 slots M.2 → 2 NVMe permitidos; SATA em placa sem portas → oculto; NVMe PCIe 4.0 em placa com slot 3.0 → aviso; lista vazia com motivo.
 
 ---
 
