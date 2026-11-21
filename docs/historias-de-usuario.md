@@ -220,6 +220,8 @@ PARA QUE eu não perca tempo lendo opções que nem vão funcionar juntas.
 
 ### HU-004: Avisar quando uma peça já escolhida limita a nova (sem bloquear)
 
+**Status:** ✅ implementada — motor em `pcbuilder/analise/limitacao/` (L01, L02, L04–L07, L09–L11) e renderização do `[!]` em `TelaEtapa`; as telas das etapas 2 a 6 entram nas HUs 005–009. Enquanto isso, a prévia da próxima etapa já mostra quantos itens teriam aviso e `--detalhar-limitacoes` imprime o bloco completo.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante escolhendo uma peça mais avançada do que a placa suporta,
@@ -247,13 +249,13 @@ PARA QUE eu decida com consciência se aceito a perda ou se troco a outra peça 
 - Nenhum aviso altera o resultado do filtro da HU-003 (filtro e aviso são avaliados separadamente).
 
 **Tarefas:**
-- ⬜ **ST-004.1 (Domínio):** `Limitacao` (`pcbuilder/modelo/Limitacao.java`) com `regraId`, `componenteLimitante`, `componenteAfetado`, `campoComparado`, `valorDoNovo`, `valorSuportado`, `consequencia`, `severidade` e `percentualPerda`.
-- ⬜ **ST-004.2 (Regras):** `AvaliadorLimitacoes` (`pcbuilder/analise/limitacao/AvaliadorLimitacoes.java`) com `avaliar(Montagem atual, Componente candidato)` retornando `List<Limitacao>`.
-- ⬜ **ST-004.3 (Regras):** calculadoras reutilizáveis `CalculadoraMemoria` (`L04`: frequência efetiva = `min(RAM, placa-mãe, IMC)`), `CalculadoraVrm` (`L02`), `CalculadoraPcie` (`L05`, `L11`), `CalculadoraConsumo` (`L06`, `L09`) e `RegraGargaloCpuGpu` (`L01`).
-- ⬜ **ST-004.4 (Regras):** `TextosLimitacao` (`pcbuilder/analise/limitacao/TextosLimitacao.java`) com a frase em linguagem simples de cada regra avaliada (`L01`, `L02`, `L04`–`L07`, `L09`–`L11`), sem jargão não explicado.
-- ⬜ **ST-004.5 (CLI):** marcador `[!]` na `TabelaComponentes` (por item da lista, sem nova rodada de filtro) e bloco de aviso com `[Enter] para continuar`.
-- ⬜ **ST-004.6 (CLI):** acúmulo dos avisos na `Montagem` e comando `[L] Avisos` na `TelaEtapa` para reler os avisos até ali.
-- ⬜ **ST-004.7 (Teste):** placa 6000 MT/s + memória 8000 MT/s (marcado, selecionável, aviso com "6000 MT/s" e "~25%"); VRM no limite; placa-mãe escolhida depois de CPU forte; e caso sem dados (`picoTransienteWatts` nulo) que **não** pode gerar aviso falso.
+- ✅ **ST-004.1 (Domínio):** `Limitacao` (`pcbuilder/modelo/Limitacao.java`) com `regraId`, `componenteLimitante`, `componenteAfetado`, `campoComparado`, `valorDoNovo`, `valorSuportado`, `consequencia`, `severidade` e `percentualPerda`.
+- ✅ **ST-004.2 (Regras):** `AvaliadorLimitacoes` (`pcbuilder/analise/limitacao/AvaliadorLimitacoes.java`) com `avaliar(Montagem atual, Componente candidato)` retornando `List<Limitacao>`.
+- ✅ **ST-004.3 (Regras):** calculadoras reutilizáveis `CalculadoraMemoria` (`L04`: frequência efetiva = `min(RAM, placa-mãe, IMC)`), `CalculadoraVrm` (`L02`), `CalculadoraPcie` (`L05`, `L11`), `CalculadoraConsumo` (`L06`, `L09`) e `RegraGargaloCpuGpu` (`L01`).
+- ✅ **ST-004.4 (Regras):** `TextosLimitacao` (`pcbuilder/analise/limitacao/TextosLimitacao.java`) com a frase em linguagem simples de cada regra avaliada (`L01`, `L02`, `L04`–`L07`, `L09`–`L11`), sem jargão não explicado.
+- ✅ **ST-004.5 (CLI):** marcador `[!]` na `TabelaComponentes` (por item da lista, sem nova rodada de filtro) e bloco de aviso com `[Enter] para continuar`.
+- ✅ **ST-004.6 (CLI):** acúmulo dos avisos na `Montagem` e comando `[L] Avisos` na `TelaEtapa` para reler os avisos até ali.
+- ✅ **ST-004.7 (Teste):** placa 6000 MT/s + memória 8000 MT/s (marcado, selecionável, aviso com "6000 MT/s" e "~25%"); VRM no limite; placa-mãe escolhida depois de CPU forte; e caso sem dados (`picoTransienteWatts` nulo) que **não** pode gerar aviso falso.
 
 ---
 
@@ -457,7 +459,7 @@ PARA QUE eu ajuste a configuração sem refazer as outras cinco escolhas.
 - ⬜ **ST-011.1 (Regras):** `MontagemGuiada.reabrirEtapa(int etapa)` e `substituir(categoria, componente)` preservando as demais categorias.
 - ⬜ **ST-011.2 (Regras):** `RevalidadorMontagem` (`pcbuilder/analise/filtro/RevalidadorMontagem.java`) rodando as regras duras (inclusive C10/C14) sobre as peças **já escolhidas** e devolvendo as etapas inválidas com o motivo.
 - ⬜ **ST-011.3 (CLI):** ação `[T]` na `TelaResumo`, `[R] Remover` nas etapas opcionais e navegação de volta ao resumo.
-- ⬜ **ST-011.4 (Regras):** `Montagem.limparLimitacoesDe(categoria)` para descartar os avisos da peça substituída.
+- ✅ **ST-011.4 (Regras):** `Montagem.limparLimitacoesDe(categoria)` para descartar os avisos da peça substituída. *(Método criado junto com a HU-004, que acumula os avisos na montagem; a troca de peça em si continua na HU-011.)*
 - ⬜ **ST-011.5 (Teste):** trocar só a RAM mantendo o resto; trocar CPU para outro soquete (etapa 2 apontada); trocar GPU por uma que exige 16 pinos com fonte de 8 pinos (etapa 6 apontada); remover GPU em CPU com iGPU; total recalculado.
 
 ---

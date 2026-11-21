@@ -1,13 +1,19 @@
 package pcbuilder.cli;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import pcbuilder.analise.filtro.FiltroEtapa;
 import pcbuilder.analise.filtro.ListaFiltrada;
+import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
+import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.cli.etapas.EtapaProcessador;
 import pcbuilder.cli.etapas.ResultadoEtapa;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.mock.CatalogoMock;
+import pcbuilder.modelo.Componente;
+import pcbuilder.modelo.Limitacao;
 import pcbuilder.servico.MontagemGuiada;
 
 /**
@@ -45,13 +51,15 @@ public final class MenuPrincipal {
     private final CatalogoMock catalogo;
     private final Terminal terminal;
     private final FiltroEtapa filtro;
+    private final AvaliadorLimitacoes avaliador = new AvaliadorLimitacoes();
+    private final boolean detalharLimitacoes;
 
     /**
      * @param catalogo base carregada uma unica vez pela aplicacao
      * @param terminal entrada e saida do programa
      */
     public MenuPrincipal(CatalogoMock catalogo, Terminal terminal) {
-        this(catalogo, terminal, false);
+        this(catalogo, terminal, false, false);
     }
 
     /**
@@ -61,11 +69,26 @@ public final class MenuPrincipal {
      *        {@code stderr} ({@code --explicar-filtro})
      */
     public MenuPrincipal(CatalogoMock catalogo, Terminal terminal, boolean explicarFiltro) {
+        this(catalogo, terminal, explicarFiltro, false);
+    }
+
+    /**
+     * @param catalogo base carregada uma unica vez pela aplicacao
+     * @param terminal entrada e saida do programa
+     * @param explicarFiltro quando {@code true}, cada item oculto tambem vai para o
+     *        {@code stderr} ({@code --explicar-filtro})
+     * @param detalharLimitacoes quando {@code true}, a previa da proxima etapa mostra o
+     *        bloco completo de cada aviso e os dados que faltam para calcular
+     *        ({@code --detalhar-limitacoes})
+     */
+    public MenuPrincipal(CatalogoMock catalogo, Terminal terminal, boolean explicarFiltro,
+            boolean detalharLimitacoes) {
         this.catalogo = catalogo;
         this.terminal = terminal;
         this.filtro = explicarFiltro
                 ? FiltroEtapa.explicativo(catalogo, System.err::println)
                 : new FiltroEtapa(catalogo);
+        this.detalharLimitacoes = detalharLimitacoes;
     }
 
     /**
@@ -124,11 +147,12 @@ public final class MenuPrincipal {
     }
 
     /**
-     * Exibe o cabecalho da etapa seguinte, a contagem do filtro (HU-003) e avisa que a
-     * tela completa pertence a outra HU.
+     * Exibe o cabecalho da etapa seguinte, a contagem do filtro (HU-003), o resumo dos
+     * avisos de limitacao (HU-004) e avisa que a tela completa pertence a outra HU.
      *
-     * <p>Serve para provar que a montagem avancou preservando a escolha anterior e que o
-     * filtro ja esta ligado, enquanto as etapas 2 a 6 nao estao implementadas.</p>
+     * <p>Serve para provar que a montagem avancou preservando a escolha anterior, que o
+     * filtro ja esta ligado e que o avaliador de limitacoes ja marca os itens que teriam
+     * {@code [!]}, enquanto as etapas 2 a 6 nao estao implementadas.</p>
      */
     private void informarEtapaPendente(MontagemGuiada fluxo) {
         terminal.linhaEmBranco();
@@ -138,6 +162,33 @@ public final class MenuPrincipal {
 
         ListaFiltrada lista = filtro.filtrar(fluxo.categoriaAtual(), fluxo.getMontagem());
         terminal.linha(PREFIXO_PREVIA_FILTRO + TelaEtapa.textoContagem(lista) + ".");
+
+        Map<Componente, List<Limitacao>> avisos = avaliador.avaliarLista(
+                fluxo.getMontagem(), lista.getCompativeis());
+        if (avisos.isEmpty()) {
+            terminal.linha(AVISO_ETAPAS_PENDENTES);
+            return;
+        }
+
+        int quantidade = avisos.size();
+        terminal.linha(quantidade + (quantidade == 1
+                ? " componente da proxima etapa com aviso [!]."
+                : " componentes da proxima etapa com aviso [!]."));
+        if (detalharLimitacoes) {
+            for (Map.Entry<Componente, List<Limitacao>> entrada : avisos.entrySet()) {
+                terminal.linhaEmBranco();
+                terminal.linha(TabelaComponentes.nomeExibicao(entrada.getKey()) + ":");
+                for (Limitacao limitacao : entrada.getValue()) {
+                    tela.imprimirLimitacao(limitacao);
+                }
+                for (String pendencia
+                        : avaliador.pendencias(fluxo.getMontagem(), entrada.getKey())) {
+                    terminal.linha("    " + TextosLimitacao.SEM_DADOS + ": " + pendencia);
+                }
+            }
+        } else {
+            terminal.linha("Use --detalhar-limitacoes para ver os detalhes.");
+        }
         terminal.linha(AVISO_ETAPAS_PENDENTES);
     }
 }

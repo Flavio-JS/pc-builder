@@ -1,12 +1,16 @@
 package pcbuilder.cli.etapas;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
 import pcbuilder.cli.TabelaComponentes;
 import pcbuilder.cli.TelaEtapa;
 import pcbuilder.cli.Terminal;
 import pcbuilder.modelo.Componente;
+import pcbuilder.modelo.Limitacao;
+import pcbuilder.modelo.Montagem;
 import pcbuilder.modelo.Processador;
 import pcbuilder.relatorio.FormatadorMoeda;
 import pcbuilder.servico.MontagemGuiada;
@@ -22,6 +26,7 @@ import pcbuilder.servico.MontagemGuiada;
  * <p>Comandos desta etapa:</p>
  * <ul>
  *   <li>numero da lista - escolhe o processador e guarda na montagem;</li>
+ *   <li>{@code [L] Avisos} - relê os avisos de limitacao ja acumulados (HU-004);</li>
  *   <li>{@code [0] Cancelar montagem} - pede confirmacao {@code S/N} e, se confirmado,
  *       descarta a montagem e volta ao menu principal.</li>
  * </ul>
@@ -41,6 +46,7 @@ public final class EtapaProcessador {
     private final MontagemGuiada fluxo;
     private final List<Componente> processadores;
     private final TelaEtapa tela;
+    private final AvaliadorLimitacoes avaliador;
 
     /**
      * @param terminal entrada e saida do programa
@@ -49,10 +55,22 @@ public final class EtapaProcessador {
      */
     public EtapaProcessador(Terminal terminal, MontagemGuiada fluxo,
             List<Componente> processadores) {
+        this(terminal, fluxo, processadores, new AvaliadorLimitacoes());
+    }
+
+    /**
+     * @param terminal entrada e saida do programa
+     * @param fluxo montagem em andamento (a CPU escolhida e guardada nela)
+     * @param processadores todos os processadores do catalogo, na ordem da base
+     * @param avaliador avaliador de limitacoes usado ao selecionar a peca
+     */
+    public EtapaProcessador(Terminal terminal, MontagemGuiada fluxo,
+            List<Componente> processadores, AvaliadorLimitacoes avaliador) {
         this.terminal = terminal;
         this.fluxo = fluxo;
         this.processadores = processadores == null ? List.of() : List.copyOf(processadores);
         this.tela = new TelaEtapa(terminal);
+        this.avaliador = Objects.requireNonNull(avaliador, "avaliador");
     }
 
     /**
@@ -84,6 +102,10 @@ public final class EtapaProcessador {
                 if (confirmarCancelamento()) {
                     return ResultadoEtapa.CANCELADA;
                 }
+                continue;
+            }
+            if (TelaEtapa.COMANDO_AVISOS.equalsIgnoreCase(comando)) {
+                tela.imprimirAvisosDaMontagem(fluxo.getMontagem());
                 continue;
             }
 
@@ -148,7 +170,12 @@ public final class EtapaProcessador {
     }
 
     private void selecionar(Componente componente) {
-        fluxo.getMontagem().adicionar(componente);
+        Montagem montagem = fluxo.getMontagem();
+        List<Limitacao> avisos = avaliador.avaliar(montagem, componente);
+        montagem.limparLimitacoesDe(componente.getCategoria());
+        montagem.registrarLimitacoes(avisos);
+        tela.imprimirAvisoSelecao(avisos);
+        montagem.adicionar(componente);
         terminal.linha("Processador selecionado: " + TabelaComponentes.nomeExibicao(componente)
                 + " - " + FormatadorMoeda.reais(componente.getPrecoMedioBRL()));
     }

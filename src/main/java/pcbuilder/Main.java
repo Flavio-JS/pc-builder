@@ -18,6 +18,8 @@ import pcbuilder.servico.ResultadoValidacao;
  *       saida {@code 2} quando existir pelo menos um {@code ERRO};</li>
  *   <li>com {@code --explicar-filtro}, escrever no {@code stderr} cada item ocultado
  *       pelo filtro de compatibilidade (HU-003), para depuracao;</li>
+ *   <li>com {@code --detalhar-limitacoes}, mostrar na previa da proxima etapa o bloco
+ *       completo dos avisos da HU-004 e os dados que faltam para calcular;</li>
  *   <li>sem argumentos, abrir o {@link MenuPrincipal} com a montagem guiada
  *       (HU-002).</li>
  * </ol>
@@ -36,8 +38,10 @@ public final class Main {
 
     private static final String OPCAO_VALIDAR_BASE = "--validar-base";
     private static final String OPCAO_EXPLICAR_FILTRO = "--explicar-filtro";
+    private static final String OPCAO_DETALHAR_LIMITACOES = "--detalhar-limitacoes";
     private static final String USO =
-            "Uso: java pcbuilder.Main [--validar-base] [--explicar-filtro]";
+            "Uso: java pcbuilder.Main [--validar-base] [--explicar-filtro]"
+            + " [--detalhar-limitacoes]";
 
     private Main() {
         // classe utilitaria: nao deve ser instanciada
@@ -59,12 +63,15 @@ public final class Main {
     public static int executar(String[] args) {
         boolean validarBase = false;
         boolean explicarFiltro = false;
+        boolean detalharLimitacoes = false;
         if (args != null) {
             for (String argumento : args) {
                 if (OPCAO_VALIDAR_BASE.equals(argumento)) {
                     validarBase = true;
                 } else if (OPCAO_EXPLICAR_FILTRO.equals(argumento)) {
                     explicarFiltro = true;
+                } else if (OPCAO_DETALHAR_LIMITACOES.equals(argumento)) {
+                    detalharLimitacoes = true;
                 } else {
                     System.err.println("Opcao desconhecida: " + argumento);
                     System.err.println(USO);
@@ -94,7 +101,7 @@ public final class Main {
         }
 
         Terminal terminal = new Terminal();
-        return new MenuPrincipal(catalogo, terminal, explicarFiltro).executar();
+        return new MenuPrincipal(catalogo, terminal, explicarFiltro, detalharLimitacoes).executar();
     }
 
     private static void imprimirProblemas(ResultadoValidacao resultado) {

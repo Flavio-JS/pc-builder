@@ -7,9 +7,9 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 (o catalogo original nao fica no repositorio — ver `docs/base-mockada.md`).
 
 **Status:** **HU-001** (carregar e validar a base mockada), **HU-002** (menu
-principal + etapa 1, escolha do processador) e **HU-003** (filtro de compatibilidade
-dura) implementadas. As telas das etapas 2 a 6 chegam nas HUs 005 a 009 e os avisos de
-limitacao (`[!]`) na HU-004.
+principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
+dura) e **HU-004** (avisos de limitacao, marcador `[!]`) implementadas. As telas das
+etapas 2 a 6 chegam nas HUs 005 a 009.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -20,9 +20,15 @@ limitacao (`[!]`) na HU-004.
 * O **filtro de compatibilidade** (`analise/filtro/`) aplica as regras duras C01, C02,
   C03, C04, C05, C06, C10, C12 e C14 antes de listar: o que nao encaixa fica em
   `[M] Ver ocultos`, com o motivo em uma linha (`soquete AM5 x processador LGA1700`).
-  Nenhum item e escondido por desempenho - frequencia, VRM e gargalo sao avisos da
-  HU-004.
+  Nenhum item e escondido por desempenho.
+* O **avaliador de limitacoes** (`analise/limitacao/`) aplica L01, L02, L04-L07 e
+  L09-L11 sobre a lista ja filtrada: a peca continua selecionavel, aparece com `[!]`
+  antes do numero e, ao ser escolhida, explica a perda em linguagem simples
+  (`A placa-mae ... suporta ate 6000 MT/s ... perda de ~25% ... A escolha continua
+  valida.`). Os avisos ficam acumulados na montagem e o comando `[L] Avisos` os relê.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
+* Com `--detalhar-limitacoes`, a previa da proxima etapa imprime o bloco completo de
+  cada aviso e os dados que faltam para calcular (`Sem dados para calcular`).
 * O usuario leigo so digita **numeros de opcao**: nenhuma especificacao tecnica e
   pedida e nenhuma peca e escolhida automaticamente.
 
@@ -31,10 +37,11 @@ limitacao (`[!]`) na HU-004.
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001, 002 e 003
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 004
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
+./scripts/executar.sh --detalhar-limitacoes # mostra os avisos [!] completos
 ```
 
 Windows (Prompt de Comando):
@@ -74,6 +81,26 @@ As etapas 2 a 6 entram nas HUs 005 a 009. Voltando ao menu principal.
 A tela completa de escolha da placa-mae (com `[M] Ver ocultos` e `[0] Voltar`) chega na
 HU-005; ate la o programa volta ao menu principal.
 
+Se as pecas compativeis gerarem limitacao (HU-004), a previa acrescenta quantas placas
+teriam `[!]` (no exemplo abaixo, um Core i9 13900K e um VRM sem dissipador):
+
+```
+68 componentes da proxima etapa com aviso [!].
+Use --detalhar-limitacoes para ver os detalhes.
+```
+
+Com `--detalhar-limitacoes` cada aviso aparece completo:
+
+```
+ASUS H610 PRIME H610M-K:
+[!] RISCO - ASUS H610 PRIME H610M-K limita Intel Core i9 13900K:
+    percentualUsoVRM: ~78% > 60% (o VRM da placa-mae ASUS H610 PRIME H610M-K trabalha a ~78% da capacidade ...)
+    A escolha continua valida.
+```
+
+Nenhum aviso remove a peca da lista: escolher a memoria de 8000 MT/s em uma placa de
+6000 MT/s continua valido, com o aviso de ~25% de perda de frequencia.
+
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 
 ## Base de componentes
@@ -93,8 +120,9 @@ Para regera-lo a partir do catalogo (pasta `../buildcores-open-db`):
 ## Estrutura
 
 ```
-src/main/java/pcbuilder/     Main.java, analise/, analise/filtro/, cli/, cli/etapas/,
-                             config/, enums/, json/, mock/, modelo/, relatorio/, servico/
+src/main/java/pcbuilder/     Main.java, analise/, analise/filtro/, analise/limitacao/,
+                             cli/, cli/etapas/, config/, enums/, json/, mock/, modelo/,
+                             relatorio/, servico/
 src/main/resources/base/     componentes.json (base gerada)
 src/test/java/pcbuilder/     testes (JDK puro, sem JUnit)
 tools/java/pcbuilder/        conversor OpenDB -> componentes.json

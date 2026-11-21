@@ -18,6 +18,9 @@ public final class TabelaComponentes {
     /** Largura fixa de todas as linhas da interface. */
     public static final int LARGURA = 100;
 
+    /** Marcador de item compativel que gera aviso de limitacao (HU-004). */
+    public static final String MARCADOR_LIMITACAO = "[!]";
+
     private static final int LARGURA_MODELO = 33;
     private static final int LARGURA_PRECO = 12;
     private static final String RODAPE_TRUNCADO = "...";
@@ -59,7 +62,27 @@ public final class TabelaComponentes {
      * @return linha pronta, com no maximo {@link #LARGURA} colunas
      */
     public static String linha(int numero, String modelo, String preco, String apoio) {
-        return String.format(" %3d) %-" + LARGURA_MODELO + "s  %" + LARGURA_PRECO + "s  %s",
+        return linha(false, numero, modelo, preco, apoio);
+    }
+
+    /**
+     * Uma linha da lista de componentes, com o marcador {@code [!]} antes do numero.
+     *
+     * <p>O {@code [!]} indica um item compativel que gera aviso de limitacao (HU-004).
+     * Ele continua selecionavel: o marcador e informativo, nunca um bloqueio.</p>
+     *
+     * @param possuiLimitacao {@code true} quando o item gera algum aviso
+     * @param numero posicao na lista, comecando em 1
+     * @param modelo nome exibido na coluna {@code Modelo}
+     * @param preco preco ja formatado ({@code R$ 2.199,00}) ou {@code null}
+     * @param apoio linha de apoio da categoria ({@code 8 nucleos | AM5 | ...})
+     * @return linha pronta, com no maximo {@link #LARGURA} colunas
+     */
+    public static String linha(boolean possuiLimitacao, int numero, String modelo, String preco,
+            String apoio) {
+        String inicio = possuiLimitacao ? MARCADOR_LIMITACAO : " ";
+        return String.format(inicio + "%3d) %-" + LARGURA_MODELO + "s  %" + LARGURA_PRECO
+                        + "s  %s",
                 numero,
                 truncar(modelo, LARGURA_MODELO),
                 preco == null ? "" : preco,

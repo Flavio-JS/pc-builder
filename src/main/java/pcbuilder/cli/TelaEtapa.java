@@ -5,8 +5,11 @@ import java.util.function.Function;
 
 import pcbuilder.analise.filtro.ItemOculto;
 import pcbuilder.analise.filtro.ListaFiltrada;
+import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.config.OrdemEtapas;
 import pcbuilder.modelo.Componente;
+import pcbuilder.modelo.Limitacao;
+import pcbuilder.modelo.Montagem;
 import pcbuilder.relatorio.FormatadorMoeda;
 
 /**
@@ -36,9 +39,17 @@ public final class TelaEtapa {
     public static final String COMANDO_OCULTOS = "M";
     /** Comando de rodape das etapas que tem itens ocultos. */
     public static final String RODAPE_OCULTOS = "[" + COMANDO_OCULTOS + "] Ver ocultos";
+    /** Tecla que relê os avisos de limitacao acumulados (HU-004). */
+    public static final String COMANDO_AVISOS = "L";
+    /** Comando de rodape das etapas que tem avisos de limitacao. */
+    public static final String RODAPE_AVISOS = "[" + COMANDO_AVISOS + "] Avisos";
+    /** Prompt exibido depois do bloco de aviso de uma selecao. */
+    public static final String MENSAGEM_CONTINUAR = "[Enter] para continuar";
     /** Mensagem exibida quando o filtro nao deixa nenhum item selecionavel. */
     public static final String MENSAGEM_SEM_COMPATIVEIS =
             "Nenhum componente compativel com a sua configuracao ate aqui.";
+    /** Mensagem de [L] quando nenhuma limitacao foi aceita ate aqui. */
+    public static final String MENSAGEM_SEM_AVISOS = "Nenhum aviso ate aqui.";
 
     private static final String CONCLUIDA_ABRE = "[+";
     private static final String ATUAL_ABRE = ">>[";
@@ -106,25 +117,68 @@ public final class TelaEtapa {
      */
     public void imprimirListaFiltrada(ListaFiltrada lista,
             Function<Componente, String> linhaDeApoio) {
+        imprimirListaFiltrada(lista, linhaDeApoio, componente -> List.of());
+    }
+
+    /**
+     * Lista os itens compativeis marcando com {@code [!]} os que geram limitacao.
+     *
+     * <p>O marcador vem da avaliacao da HU-004 e <strong>nao</strong> tira o item da
+     * lista: ele continua selecionavel. O rodape anuncia quantos itens tem aviso e o
+     * comando {@code [L] Avisos} para reler os avisos ja aceitos.</p>
+     *
+     * @param lista resultado do filtro da etapa
+     * @param linhaDeApoio texto curto por componente (nucleos, chipset, watts...)
+     * @param limitacoes avisos de cada componente (lista vazia quando nao ha)
+     */
+    public void imprimirListaFiltrada(ListaFiltrada lista,
+            Function<Componente, String> linhaDeApoio,
+            Function<Componente, List<Limitacao>> limitacoes) {
         imprimirSeparador();
         terminal.linha(TabelaComponentes.cabecalho());
         imprimirSeparador();
         List<Componente> compativeis = lista.getCompativeis();
+        int comAviso = 0;
         for (int indice = 0; indice < compativeis.size(); indice++) {
             Componente componente = compativeis.get(indice);
             String apoio = linhaDeApoio == null ? "" : linhaDeApoio.apply(componente);
+            List<Limitacao> avisos = limitacoes == null
+                    ? List.of()
+                    : limitacoes.apply(componente);
+            boolean marcado = avisos != null && !avisos.isEmpty();
+            if (marcado) {
+                comAviso++;
+            }
             terminal.linha(TabelaComponentes.linha(
+                    marcado,
                     indice + 1,
                     TabelaComponentes.nomeExibicao(componente),
                     FormatadorMoeda.reais(componente.getPrecoMedioBRL()),
                     apoio));
         }
         imprimirSeparador();
+        terminal.linha(textoRodape(lista, comAviso));
+    }
+
+    /**
+     * Rodape da lista: contagem de compativeis/ocultos, itens com aviso e comandos.
+     *
+     * @param lista resultado do filtro
+     * @param comAviso quantidade de itens marcados com {@code [!]}
+     * @return a linha pronta para impressao
+     */
+    public static String textoRodape(ListaFiltrada lista, int comAviso) {
         String contagem = textoContagem(lista);
+        if (comAviso > 0) {
+            contagem = contagem + ESPACO_ENTRE_ETAPAS + comAviso + " com aviso [!]";
+        }
         if (lista.quantidadeOcultos() > 0) {
             contagem = contagem + ESPACO_ENTRE_ETAPAS + RODAPE_OCULTOS;
         }
-        terminal.linha(contagem);
+        if (comAviso > 0) {
+            contagem = contagem + ESPACO_ENTRE_ETAPAS + RODAPE_AVISOS;
+        }
+        return contagem;
     }
 
     /**
@@ -186,6 +240,55 @@ public final class TelaEtapa {
                 .ifPresent(motivo -> terminal.linha("Motivo predominante: " + motivo));
         terminal.linha("[0] Voltar para trocar a peca anterior");
     }
+
+    /**
+     * Imprime o bloco de aviso de uma limitacao (HU-004), com severidade, componente
+     * limitante, campo, valores, consequencia e o lembrete de que a escolha vale.
+     *
+     * @param limitacao aviso detectado pelo {@code AvaliadorLimitacoes}
+     */
+    public void imprimirLimitacao(Limitacao limitacao) {
+        for (String linha : TextosLimitacao.linhas(limitacao)) {
+            terminal.linha(linha);
+        }
+    }
+
+    /**
+     * Mostra os avisos de uma selecao e espera {@code [Enter] para continuar}.
+     *
+     * <p>Chamado pelo fluxo logo depois de o usuario escolher um item marcado com
+     * {@code [!]}: nada e bloqueado, mas a perda e explicada antes de avancar.</p>
+     *
+     * @param avisos limitacoes da peca escolhida (vazio quando nao ha nada a avisar)
+     */
+    public void imprimirAvisoSelecao(List<Limitacao> avisos) {
+        if (avisos == null || avisos.isEmpty()) {
+            return;
+        }
+        for (Limitacao limitacao : avisos) {
+            imprimirLimitacao(limitacao);
+        }
+        terminal.perguntar(MENSAGEM_CONTINUAR);
+    }
+
+    /**
+     * Comando {@code [L] Avisos}: rele os avisos de limitacao acumulados na montagem.
+     *
+     * @param montagem montagem em andamento
+     */
+    public void imprimirAvisosDaMontagem(Montagem montagem) {
+        imprimirSeparador();
+        List<Limitacao> avisos = montagem.getLimitacoes();
+        if (avisos.isEmpty()) {
+            terminal.linha(MENSAGEM_SEM_AVISOS);
+            return;
+        }
+        terminal.linha("Avisos acumulados (" + avisos.size() + "):");
+        for (Limitacao limitacao : avisos) {
+            imprimirLimitacao(limitacao);
+        }
+    }
+
 
     /** Separador horizontal da tela. */
     public void imprimirSeparador() {

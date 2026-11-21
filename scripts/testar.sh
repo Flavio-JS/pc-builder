@@ -14,3 +14,4 @@ esac
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.ValidadorCadastroTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.MontagemGuiadaTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.FiltroEtapaTeste
+java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.LimitacoesTeste
