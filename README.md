@@ -8,9 +8,9 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 
 **Status:** **HU-001** (carregar e validar a base mockada), **HU-002** (menu
 principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
-dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae)
-e **HU-006** (etapa 3, memoria) implementadas. As telas das etapas 4 a 6 chegam nas HUs
-007 a 009.
+dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae),
+**HU-006** (etapa 3, memoria) e **HU-007** (etapa 4, placa de video condicional)
+implementadas. As telas das etapas 5 e 6 chegam nas HUs 008 e 009.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -36,6 +36,9 @@ e **HU-006** (etapa 3, memoria) implementadas. As telas das etapas 4 a 6 chegam 
   calculada (`2x16 GB = 32 GB | 8000 MT/s | CL38 | EXPO: sim`), `[M] Ver ocultos` e os
   avisos L04 (frequencia/single channel) e C02 (EXPO/XMP nao suportado) marcados com
   `[!]`. O caso 8000 MT/s x placa de 6000 MT/s avisa a perda de ~25% e mantem a escolha.
+* **Etapa 4 (placa de video)** condicional ao video integrado da CPU: `(opcional)` com
+  `[0] Pular` quando a CPU tem iGPU e `(obrigatorio)` sem pular quando nao tem (C06).
+  Filtro C05 e linha de apoio `12 GB GDDR6X | PCIe 4.0 x16 | 220 W | 1x 16-pinos`.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * Com `--detalhar-limitacoes`, a previa da proxima etapa imprime o bloco completo de
   cada aviso e os dados que faltam para calcular (`Sem dados para calcular`).
@@ -47,7 +50,7 @@ e **HU-006** (etapa 3, memoria) implementadas. As telas das etapas 4 a 6 chegam 
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 006
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 007
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
@@ -132,10 +135,31 @@ suporta avisa que vai rodar em JEDEC:
 [Enter] para continuar Memoria selecionada: ... - R$ ... (2x32 GB = 64 GB, Dual Channel)
 ```
 
-`[0] Voltar` retorna a etapa 2 preservando CPU e placa-mae. Depois da memoria, a previa
-da etapa 4 mostra quantas placas de video teriam `[!]`; com `--detalhar-limitacoes` cada
-aviso aparece completo, inclusive os dados que faltam para calcular
-(`Sem dados para calcular`).
+`[0] Voltar` retorna a etapa 2 preservando CPU e placa-mae.
+
+A etapa 4 e condicional (C06): com CPU que tem video integrado o cabecalho e
+`(opcional)` e o rodape oferece `[0] Pular`; sem video integrado, e `(obrigatorio)`,
+explica o motivo e nao permite pular:
+
+```
+=== Etapa 4 de 6 - Placa de Video (opcional) ===
+[+Processador]   [+Placa-mae]   [+Memoria]   >>[Video]<<   [Armazenamento]   [Fonte]
+...
+3831 componentes compativeis (nenhum oculto por incompatibilidade)   1442 com aviso [!]   [L] Avisos
+----------------------------------------------------------------------------------------------------
+[0] Pular
+```
+
+`[0]` imprime `Placa de video pulada: o seu processador ja tem video integrado.` e segue
+para a etapa 5. A linha de apoio e
+`12 GB GDDR6X | PCIe 4.0 x16 | 220 W | 1x 16-pinos`, e L05 (banda), L01 (gargalo) e L07
+(VRAM) aparecem com `[!]` sem bloquear a escolha. Sem GPU compativel e etapa
+obrigatoria, o programa imprime `Nenhuma placa de video compativel com a sua placa-mae.`
+e oferece `[0] Voltar`.
+
+Depois da GPU (ou do pulo), a previa da etapa 5 mostra quantos armazenamentos teriam
+`[!]`; com `--detalhar-limitacoes` cada aviso aparece completo, inclusive os dados que
+faltam para calcular (`Sem dados para calcular`).
 
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 

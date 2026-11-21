@@ -3,6 +3,8 @@ package pcbuilder.config;
 import java.util.List;
 
 import pcbuilder.enums.CategoriaComponente;
+import pcbuilder.modelo.Montagem;
+import pcbuilder.modelo.Processador;
 
 /**
  * Ordem fixa das etapas da montagem guiada (secao 2.1 das historias de usuario).
@@ -17,6 +19,9 @@ public final class OrdemEtapas {
 
     /** Quantidade de etapas do fluxo guiado. */
     public static final int TOTAL_ETAPAS = 6;
+
+    /** Etapa da placa de video, a unica condicional (regra C06). */
+    private static final int ETAPA_PLACA_VIDEO = 4;
 
     private static final List<CategoriaComponente> CATEGORIAS = List.of(
             CategoriaComponente.CPU,
@@ -76,13 +81,60 @@ public final class OrdemEtapas {
     /**
      * Indica se a etapa e obrigatoria.
      *
-     * <p>Nesta HU todas as etapas sao obrigatorias. A etapa 4 (placa de video) passa
-     * a ser condicional na HU-007, quando a obrigatoriedade depende de
-     * {@code cpu.possuiVideoIntegrado} (regra C06).</p>
+     * <p>Todas as etapas sao obrigatorias, exceto a 4 (placa de video), que e
+     * <strong>opcional</strong> quando o processador tem video integrado (regra C06). A
+     * versao sem montagem considera a etapa 4 obrigatoria, porque sem a CPU nao ha como
+     * saber se o video sera integrado.</p>
      */
     public static boolean obrigatoria(int etapa) {
         exigirEtapaValida(etapa);
         return true;
+    }
+
+    /**
+     * Indica se a etapa e obrigatoria para a montagem informada.
+     *
+     * <p>A etapa 4 vira opcional quando a CPU escolhida tem video integrado
+     * ({@code cpu.possuiVideoIntegrado = true}). Sem CPU, a etapa continua obrigatoria.</p>
+     *
+     * @param etapa numero da etapa (1 a 6)
+     * @param montagem pecas escolhidas ate aqui
+     * @return {@code true} quando a etapa precisa de uma peca
+     */
+    public static boolean obrigatoria(int etapa, Montagem montagem) {
+        exigirEtapaValida(etapa);
+        if (etapa != ETAPA_PLACA_VIDEO) {
+            return true;
+        }
+        return !cpuComVideoIntegrado(montagem);
+    }
+
+    /**
+     * O processador escolhido obriga a ter placa de video? (regra C06)
+     *
+     * @param montagem pecas escolhidas ate aqui
+     * @return {@code true} quando ha CPU e ela <strong>nao</strong> tem video integrado
+     */
+    public static boolean exigePlacaVideo(Montagem montagem) {
+        if (montagem == null) {
+            return false;
+        }
+        return montagem.obter(CategoriaComponente.CPU)
+                .filter(Processador.class::isInstance)
+                .map(Processador.class::cast)
+                .map(cpu -> !cpu.isPossuiVideoIntegrado())
+                .orElse(false);
+    }
+
+    private static boolean cpuComVideoIntegrado(Montagem montagem) {
+        if (montagem == null) {
+            return false;
+        }
+        return montagem.obter(CategoriaComponente.CPU)
+                .filter(Processador.class::isInstance)
+                .map(Processador.class::cast)
+                .map(Processador::isPossuiVideoIntegrado)
+                .orElse(false);
     }
 
     private static void exigirEtapaValida(int etapa) {

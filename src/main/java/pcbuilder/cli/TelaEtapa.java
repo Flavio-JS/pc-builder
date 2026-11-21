@@ -67,10 +67,23 @@ public final class TelaEtapa {
     /**
      * Imprime {@code === Etapa N de 6 - <Categoria> (obrigatorio|opcional) ===}.
      *
+     * <p>Sem a montagem, a etapa 4 aparece como obrigatoria; as telas do fluxo usam a
+     * versao com a montagem para decidir a placa de video (C06).</p>
+     *
      * @param etapa numero da etapa (1 a 6)
      */
     public void imprimirCabecalho(int etapa) {
-        String situacao = OrdemEtapas.obrigatoria(etapa) ? "obrigatorio" : "opcional";
+        imprimirCabecalho(etapa, new Montagem());
+    }
+
+    /**
+     * Imprime {@code === Etapa N de 6 - <Categoria> (obrigatorio|opcional) ===}.
+     *
+     * @param etapa numero da etapa (1 a 6)
+     * @param montagem pecas escolhidas ate aqui (decide a obrigatoriedade da etapa 4)
+     */
+    public void imprimirCabecalho(int etapa, Montagem montagem) {
+        String situacao = OrdemEtapas.obrigatoria(etapa, montagem) ? "obrigatorio" : "opcional";
         terminal.linha("=== Etapa " + etapa + " de " + OrdemEtapas.TOTAL_ETAPAS + " - "
                 + OrdemEtapas.categoria(etapa).getRotulo() + " (" + situacao + ") ===");
     }
@@ -235,10 +248,23 @@ public final class TelaEtapa {
      * @param lista resultado do filtro (vazio em {@code compativeis})
      */
     public void imprimirSemCompativeis(ListaFiltrada lista) {
-        terminal.linha(MENSAGEM_SEM_COMPATIVEIS);
+        imprimirSemCompativeis(lista, MENSAGEM_SEM_COMPATIVEIS,
+                "[0] Voltar para trocar a peca anterior");
+    }
+
+    /**
+     * Explica uma etapa sem nenhum item compativel com uma mensagem/comando especificos
+     * (por exemplo, a etapa 4 opcional oferece {@code [0] Pular}).
+     *
+     * @param lista resultado do filtro (vazio em {@code compativeis})
+     * @param mensagem primeira linha da explicacao
+     * @param linhaZero comando exibido no rodape ({@code [0] ...})
+     */
+    public void imprimirSemCompativeis(ListaFiltrada lista, String mensagem, String linhaZero) {
+        terminal.linha(mensagem);
         lista.motivoPredominante()
                 .ifPresent(motivo -> terminal.linha("Motivo predominante: " + motivo));
-        terminal.linha("[0] Voltar para trocar a peca anterior");
+        terminal.linha(linhaZero);
     }
 
     /**

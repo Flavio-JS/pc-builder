@@ -10,6 +10,7 @@ import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
 import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.cli.etapas.EtapaMemoria;
 import pcbuilder.cli.etapas.EtapaPlacaMae;
+import pcbuilder.cli.etapas.EtapaPlacaVideo;
 import pcbuilder.cli.etapas.EtapaProcessador;
 import pcbuilder.cli.etapas.ResultadoEtapa;
 import pcbuilder.enums.CategoriaComponente;
@@ -27,10 +28,10 @@ import pcbuilder.servico.MontagemGuiada;
  * usuario sai do fluxo (cancelou ou a base nao tem a categoria), o menu volta a
  * aparecer.</p>
  *
- * <p>As etapas 1 a 3 (processador, placa-mae e memoria) ja existem. Ao avancar da etapa
- * 3 o programa aplica o filtro de compatibilidade (HU-003) e mostra quantos itens da
- * proxima etapa encaixam na escolha feita, voltando ao menu sem manter a montagem
- * parcial. A tela completa das etapas 4 a 6 entra nas HUs 007 a 009.</p>
+ * <p>As etapas 1 a 4 (processador, placa-mae, memoria e placa de video) ja existem. Ao
+ * avancar da etapa 4 o programa aplica o filtro de compatibilidade (HU-003) e mostra
+ * quantos itens da proxima etapa encaixam na escolha feita, voltando ao menu sem manter a
+ * montagem parcial. A tela completa das etapas 5 e 6 entra nas HUs 008 e 009.</p>
  */
 public final class MenuPrincipal {
 
@@ -47,7 +48,7 @@ public final class MenuPrincipal {
     public static final String MENSAGEM_OPCAO_INVALIDA = "Digite o numero de uma das opcoes.";
 
     private static final String AVISO_ETAPAS_PENDENTES =
-            "As etapas 4 a 6 entram nas HUs 007 a 009. Voltando ao menu principal.";
+            "As etapas 5 e 6 entram nas HUs 008 e 009. Voltando ao menu principal.";
     private static final String PREFIXO_PREVIA_FILTRO = "Filtro da proxima etapa: ";
 
     private final CatalogoMock catalogo;
@@ -168,6 +169,19 @@ public final class MenuPrincipal {
                 fluxo.proximaEtapa();
                 continue;
             }
+            if (categoria == CategoriaComponente.PLACA_VIDEO) {
+                EtapaPlacaVideo etapa = new EtapaPlacaVideo(terminal, fluxo, filtro, avaliador);
+                ResultadoEtapa resultado = etapa.executar();
+                if (resultado == ResultadoEtapa.VOLTAR) {
+                    fluxo.etapaAnterior();
+                    continue;
+                }
+                if (resultado != ResultadoEtapa.CONCLUIDA) {
+                    return;
+                }
+                fluxo.proximaEtapa();
+                continue;
+            }
             informarEtapaPendente(fluxo);
             return;
         }
@@ -186,7 +200,7 @@ public final class MenuPrincipal {
     private void informarEtapaPendente(MontagemGuiada fluxo) {
         terminal.linhaEmBranco();
         TelaEtapa tela = new TelaEtapa(terminal);
-        tela.imprimirCabecalho(fluxo.etapaAtual());
+        tela.imprimirCabecalho(fluxo.etapaAtual(), fluxo.getMontagem());
         tela.imprimirBarraProgresso(fluxo.etapaAtual());
 
         ListaFiltrada lista = filtro.filtrar(fluxo.categoriaAtual(), fluxo.getMontagem());

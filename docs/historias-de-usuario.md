@@ -318,6 +318,8 @@ PARA QUE eu saiba se estou pagando por desempenho que o meu PC não vai entregar
 
 ### HU-007: Escolher a placa de vídeo (etapa 4 — condicional)
 
+**Status:** ✅ implementada — `EtapaPlacaVideo` com cabeçalho dinâmico (C06), `[0] Pular` quando opcional e `[0] Voltar` quando obrigatória, filtro C05 e avisos L05/L01/L07. A obrigatoriedade fica em `OrdemEtapas.obrigatoria(etapa, montagem)`; `TelaEtapa` usa a montagem para decidir `(obrigatorio|opcional)`. O resumo final com `(nao selecionado)` entra na HU-010.
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante,
@@ -336,11 +338,11 @@ PARA QUE eu não compre uma placa desnecessária nem termine com um PC que não 
 - Se nenhuma placa for compatível e a etapa for obrigatória, imprime `Nenhuma placa de video compativel com a sua placa-mae.` e oferece `[0] Voltar`.
 
 **Tarefas:**
-- ⬜ **ST-007.1 (Regras):** obrigatoriedade da etapa em `pcbuilder/config/OrdemEtapas.java`, calculada a partir de `cpu.possuiVideoIntegrado` (regra `C06`).
-- ⬜ **ST-007.2 (CLI):** `EtapaPlacaVideo` (`pcbuilder/cli/etapas/EtapaPlacaVideo.java`) com cabeçalho dinâmico, `[0] Pular` condicional e mensagem explicativa.
-- ⬜ **ST-007.3 (Regras):** habilitar `FiltroSlotPcie` (C05) e os avisos `L05`, `L01` e `L07` (usando `gpu.resolucaoAlvo`).
-- ⬜ **ST-007.4 (CLI):** tratamento de "nenhuma GPU compatível" com retorno à etapa anterior.
-- ⬜ **ST-007.5 (Teste):** CPU com iGPU (etapa pulável, resumo marca `(nao selecionado)`); CPU sem iGPU (etapa obrigatória, sem `[0] Pular`); GPU PCIe 5.0 em slot 4.0 gera aviso de banda; GPU de 8 GB gera aviso de VRAM.
+- ✅ **ST-007.1 (Regras):** obrigatoriedade da etapa em `pcbuilder/config/OrdemEtapas.java`, calculada a partir de `cpu.possuiVideoIntegrado` (regra `C06`).
+- ✅ **ST-007.2 (CLI):** `EtapaPlacaVideo` (`pcbuilder/cli/etapas/EtapaPlacaVideo.java`) com cabeçalho dinâmico, `[0] Pular` condicional e mensagem explicativa.
+- ✅ **ST-007.3 (Regras):** habilitar `FiltroSlotPcie` (C05) e os avisos `L05`, `L01` e `L07` (usando `gpu.resolucaoAlvo`).
+- ✅ **ST-007.4 (CLI):** tratamento de "nenhuma GPU compatível" com retorno à etapa anterior.
+- ✅ **ST-007.5 (Teste):** CPU com iGPU (etapa pulável, resumo marca `(nao selecionado)`); CPU sem iGPU (etapa obrigatória, sem `[0] Pular`); GPU PCIe 5.0 em slot 4.0 gera aviso de banda; GPU de 8 GB gera aviso de VRAM.
 
 ---
 

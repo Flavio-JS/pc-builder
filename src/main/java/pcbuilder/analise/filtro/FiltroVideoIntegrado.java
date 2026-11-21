@@ -2,18 +2,17 @@ package pcbuilder.analise.filtro;
 
 import java.util.Optional;
 
-import pcbuilder.analise.ComponentesDaMontagem;
+import pcbuilder.config.OrdemEtapas;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.modelo.Componente;
 import pcbuilder.modelo.Montagem;
-import pcbuilder.modelo.Processador;
 
 /**
  * Regra <strong>C06</strong> - processador sem video integrado exige placa de video.
  *
  * <p>A regra <strong>nao oculta nenhum modelo de GPU</strong>: qualquer placa de video
  * encaixa no slot x16 e a regra nao compara modelos. O papel dela e decidir se a etapa
- * 4 e obrigatoria ({@link #exigePlacaVideo(Montagem)}) - a decisao de tela entra na
+ * 4 e obrigatoria ({@link #exigePlacaVideo(Montagem)}) - a decisao de tela esta na
  * HU-007, quando a etapa 4 passa a existir.</p>
  *
  * <p>Ela participa do filtro mesmo assim porque o modelo de dados a classifica como
@@ -40,9 +39,6 @@ public final class FiltroVideoIntegrado implements RegraFiltro {
      * @return {@code true} quando ha CPU na montagem e ela nao tem video integrado
      */
     public static boolean exigePlacaVideo(Montagem atual) {
-        return ComponentesDaMontagem.cpu(atual)
-                .map(Processador::isPossuiVideoIntegrado)
-                .map(possui -> !possui)
-                .orElse(false);
+        return OrdemEtapas.exigePlacaVideo(atual);
     }
 }

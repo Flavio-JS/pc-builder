@@ -46,6 +46,7 @@ public final class SelecaoFiltrada {
     private final FiltroEtapa filtro;
     private final AvaliadorLimitacoes avaliador;
     private final TelaEtapa tela;
+    private final Opcoes opcoes;
 
     /**
      * @param terminal entrada e saida do programa
@@ -54,9 +55,21 @@ public final class SelecaoFiltrada {
      */
     public SelecaoFiltrada(Terminal terminal, FiltroEtapa filtro,
             AvaliadorLimitacoes avaliador) {
+        this(terminal, filtro, avaliador, Opcoes.padrao());
+    }
+
+    /**
+     * @param terminal entrada e saida do programa
+     * @param filtro filtro compartilhado pela aplicacao
+     * @param avaliador avaliador de limitacoes usado para marcar os itens com {@code [!]}
+     * @param opcoes textos/comandos proprios da etapa (por exemplo, {@code [0] Pular})
+     */
+    public SelecaoFiltrada(Terminal terminal, FiltroEtapa filtro,
+            AvaliadorLimitacoes avaliador, Opcoes opcoes) {
         this.terminal = Objects.requireNonNull(terminal, "terminal");
         this.filtro = Objects.requireNonNull(filtro, "filtro");
         this.avaliador = Objects.requireNonNull(avaliador, "avaliador");
+        this.opcoes = Objects.requireNonNull(opcoes, "opcoes");
         this.tela = new TelaEtapa(terminal);
     }
 
@@ -77,8 +90,11 @@ public final class SelecaoFiltrada {
         Objects.requireNonNull(categoria, "categoria");
         Objects.requireNonNull(mensagemSelecionada, "mensagemSelecionada");
 
-        tela.imprimirCabecalho(fluxo.etapaAtual());
+        tela.imprimirCabecalho(fluxo.etapaAtual(), fluxo.getMontagem());
         tela.imprimirBarraProgresso(fluxo.etapaAtual());
+        if (opcoes.getMensagemInicial() != null) {
+            terminal.linha(opcoes.getMensagemInicial());
+        }
 
         ListaFiltrada lista = filtro.filtrar(categoria, fluxo.getMontagem());
         if (lista.estaVazia()) {
@@ -90,7 +106,7 @@ public final class SelecaoFiltrada {
         while (true) {
             tela.imprimirListaFiltrada(lista, linhaDeApoio,
                     componente -> avisos.getOrDefault(componente, List.of()));
-            tela.imprimirRodape(RODAPE_VOLTAR);
+            tela.imprimirRodape(opcoes.getRodapeZero());
 
             Optional<String> entrada = terminal.perguntar(">");
             if (entrada.isEmpty()) {
@@ -135,7 +151,8 @@ public final class SelecaoFiltrada {
 
     /** Caminho sem nenhum item compativel: explica o motivo e aceita {@code [0]}/{@code [M]}. */
     private ResultadoEtapa executarSemCompativeis(ListaFiltrada lista) {
-        tela.imprimirSemCompativeis(lista);
+        tela.imprimirSemCompativeis(lista, opcoes.getMensagemSemCompativeis(),
+                opcoes.getLinhaZeroSemCompativeis());
         while (true) {
             Optional<String> entrada = terminal.perguntar(">");
             if (entrada.isEmpty()) {
@@ -181,5 +198,58 @@ public final class SelecaoFiltrada {
         tela.imprimirAvisoSelecao(avisos);
         montagem.adicionar(componente);
         terminal.linha(mensagemSelecionada.apply(componente));
+    }
+
+    /**
+     * Textos e comandos proprios de uma etapa.
+     *
+     * <p>O padrao e o das etapas obrigatorias: {@code [0] Voltar} e a mensagem generica
+     * de "nenhum compativel". A etapa 4 opcional usa {@code [0] Pular} e a etapa 4
+     * obrigatoria explica por que a placa de video e necessaria.</p>
+     */
+    public static final class Opcoes {
+
+        private final String rodapeZero;
+        private final String mensagemSemCompativeis;
+        private final String linhaZeroSemCompativeis;
+        private final String mensagemInicial;
+
+        /**
+         * @param rodapeZero comando {@code [0] ...} exibido no rodape da lista
+         * @param mensagemSemCompativeis primeira linha quando o filtro nao deixa item
+         * @param linhaZeroSemCompativeis comando exibido quando o filtro nao deixa item
+         * @param mensagemInicial linha extra depois do cabecalho (pode ser {@code null})
+         */
+        public Opcoes(String rodapeZero, String mensagemSemCompativeis,
+                String linhaZeroSemCompativeis, String mensagemInicial) {
+            this.rodapeZero = Objects.requireNonNull(rodapeZero, "rodapeZero");
+            this.mensagemSemCompativeis = Objects.requireNonNull(mensagemSemCompativeis,
+                    "mensagemSemCompativeis");
+            this.linhaZeroSemCompativeis = Objects.requireNonNull(linhaZeroSemCompativeis,
+                    "linhaZeroSemCompativeis");
+            this.mensagemInicial = mensagemInicial;
+        }
+
+        /** Opcoes das etapas obrigatorias (voltar e mensagem generica). */
+        public static Opcoes padrao() {
+            return new Opcoes(RODAPE_VOLTAR, TelaEtapa.MENSAGEM_SEM_COMPATIVEIS,
+                    "[0] Voltar para trocar a peca anterior", null);
+        }
+
+        public String getRodapeZero() {
+            return rodapeZero;
+        }
+
+        public String getMensagemSemCompativeis() {
+            return mensagemSemCompativeis;
+        }
+
+        public String getLinhaZeroSemCompativeis() {
+            return linhaZeroSemCompativeis;
+        }
+
+        public String getMensagemInicial() {
+            return mensagemInicial;
+        }
     }
 }

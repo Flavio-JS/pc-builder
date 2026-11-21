@@ -80,7 +80,7 @@ public final class EtapaProcessador {
      * @return o que aconteceu, para o menu principal decidir o proximo passo
      */
     public ResultadoEtapa executar() {
-        tela.imprimirCabecalho(fluxo.etapaAtual());
+        tela.imprimirCabecalho(fluxo.etapaAtual(), fluxo.getMontagem());
         tela.imprimirBarraProgresso(fluxo.etapaAtual());
 
         if (processadores.isEmpty()) {
