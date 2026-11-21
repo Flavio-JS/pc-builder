@@ -8,8 +8,9 @@ catalogo publico BuildCores OpenDB para um JSON no formato do nosso modelo de da
 
 **Status:** **HU-001** (carregar e validar a base mockada), **HU-002** (menu
 principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilidade
-dura), **HU-004** (avisos de limitacao, marcador `[!]`) e **HU-005** (etapa 2, escolha
-da placa-mae) implementadas. As telas das etapas 3 a 6 chegam nas HUs 006 a 009.
+dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae)
+e **HU-006** (etapa 3, memoria) implementadas. As telas das etapas 4 a 6 chegam nas HUs
+007 a 009.
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -31,6 +32,10 @@ da placa-mae) implementadas. As telas das etapas 3 a 6 chegam nas HUs 006 a 009.
   campos (`chipset B650 | MATX | 4 slots DDR5 (max 6000 MT/s) | VRM 8x50A`),
   `[M] Ver ocultos`, `[0] Voltar` (preserva a CPU e recalcula o filtro) e os avisos de
   VRM (L02) e BIOS (C09) marcados com `[!]`.
+* **Etapa 3 (memoria)** com filtro por tipo DDR/slots/capacidade, linha de apoio
+  calculada (`2x16 GB = 32 GB | 8000 MT/s | CL38 | EXPO: sim`), `[M] Ver ocultos` e os
+  avisos L04 (frequencia/single channel) e C02 (EXPO/XMP nao suportado) marcados com
+  `[!]`. O caso 8000 MT/s x placa de 6000 MT/s avisa a perda de ~25% e mantem a escolha.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * Com `--detalhar-limitacoes`, a previa da proxima etapa imprime o bloco completo de
   cada aviso e os dados que faltam para calcular (`Sem dados para calcular`).
@@ -42,7 +47,7 @@ da placa-mae) implementadas. As telas das etapas 3 a 6 chegam nas HUs 006 a 009.
 Precisa de **JDK 17+** (testado com o 25). Estando nesta pasta (`pc-builder/`):
 
 ```bash
-./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 005
+./scripts/testar.sh                  # compila tudo e roda os testes das HUs 001 a 006
 ./scripts/executar.sh                # carrega a base e abre o menu principal
 ./scripts/executar.sh --validar-base # carrega a base e mostra os problemas
 ./scripts/executar.sh --explicar-filtro # escreve cada item oculto no stderr
@@ -101,12 +106,36 @@ etapa 2. O aviso de BIOS da H610 (familia de 2022) com o Core i9 13900T (2023) f
 > A C09 e uma **estimativa por familia de chipset** porque a tabela `RequisitoBIOS`
 > (par placa/CPU) nao existe na base; nenhuma placa e ocultada por isso.
 
-Depois da placa-mae, a previa da etapa 3 mostra quantas memorias teriam `[!]` por causa
-do teto de frequencia da placa (`A placa-mae ... suporta ate ... perda de ~N%`). Com
-`--detalhar-limitacoes` cada aviso aparece completo, inclusive os dados que faltam para
-calcular (`Sem dados para calcular`). Nenhum aviso remove a peca da lista: escolher a
-memoria de 8000 MT/s em uma placa de 6000 MT/s continua valido, com o aviso de ~25% de
-perda de frequencia.
+Ao escolher a placa, a etapa 3 lista so as memorias do tipo DDR da placa e que cabem nos
+slots/capacidade (C02/C03). Kits de outro tipo ou grandes demais ficam em
+`[M] Ver ocultos`; kits que rendem menos do que o anunciado aparecem com `[!]`:
+
+```
+=== Etapa 3 de 6 - Memoria (obrigatorio) ===
+[+Processador]   [+Placa-mae]   >>[Memoria]<<   [Video]   [Armazenamento]   [Fonte]
+   1) CORSAIR Vengeance                  R$   799,00  2x16 GB = 32 GB | 6000 MT/s | CL30 | EXPO: sim
+[!]   4) CORSAIR Vengeance                  R$   999,00  2x32 GB = 64 GB | 8000 MT/s | CL38 | EXPO: sim
+...
+1510 componentes compativeis (2996 ocultos por incompatibilidade)   863 com aviso [!]   [M] Ver ocultos   [L] Avisos
+----------------------------------------------------------------------------------------------------
+[0] Voltar
+```
+
+Um kit de 8000 MT/s em uma placa de teto 6000 MT/s continua selecionavel e explica a
+perda; o kit de 1 pente avisa o single channel; e um kit com perfil que a placa nao
+suporta avisa que vai rodar em JEDEC:
+
+```
+[!] AVISO - A placa-mae ... limita CORSAIR Vengeance:
+    frequenciaMTs: 8000 MT/s > 6000 MT/s (A placa-mae ... suporta ate 6000 MT/s. Esta memoria (8000 MT/s) vai rodar a 6000 MT/s: perda de ~25% da frequencia.)
+    A escolha continua valida.
+[Enter] para continuar Memoria selecionada: ... - R$ ... (2x32 GB = 64 GB, Dual Channel)
+```
+
+`[0] Voltar` retorna a etapa 2 preservando CPU e placa-mae. Depois da memoria, a previa
+da etapa 4 mostra quantas placas de video teriam `[!]`; com `--detalhar-limitacoes` cada
+aviso aparece completo, inclusive os dados que faltam para calcular
+(`Sem dados para calcular`).
 
 Codigos de saida: `0` sucesso, `1` erro de uso, `2` base mockada invalida.
 

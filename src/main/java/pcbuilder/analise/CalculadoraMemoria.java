@@ -1,9 +1,11 @@
 package pcbuilder.analise;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import pcbuilder.modelo.Componente;
 import pcbuilder.modelo.Memoria;
+import pcbuilder.modelo.Montagem;
 import pcbuilder.modelo.PlacaMae;
 import pcbuilder.modelo.Processador;
 
@@ -87,6 +89,23 @@ public final class CalculadoraMemoria {
             return 0;
         }
         return (frequenciaAnunciada - frequenciaEfetiva) * 100.0 / frequenciaAnunciada;
+    }
+
+    /**
+     * Canais de memoria oferecidos pela configuracao (placa-mae e, na falta dela, CPU).
+     *
+     * @param montagem pecas escolhidas ate a etapa 3
+     * @return a quantidade de canais; {@code 0} quando nenhuma peca informa o dado
+     */
+    public static int canaisSuportados(Montagem montagem) {
+        Objects.requireNonNull(montagem, "montagem");
+        Optional<PlacaMae> placaMae = ComponentesDaMontagem.placaMae(montagem);
+        if (placaMae.isPresent() && placaMae.get().getCanaisMemoria() > 0) {
+            return placaMae.get().getCanaisMemoria();
+        }
+        return ComponentesDaMontagem.cpu(montagem)
+                .map(Processador::getCanaisMemoria)
+                .orElse(0);
     }
 
     /**

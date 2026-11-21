@@ -290,6 +290,8 @@ PARA QUE eu escolha uma placa que não deixe o meu processador nem a futura mem�
 
 ### HU-006: Escolher a memória (etapa 3)
 
+**Status:** ✅ implementada — `EtapaMemoria` com filtro C02/C03, avisos L04 (frequência efetiva e single channel) e C02 (perfil EXPO/XMP não suportado), `[M] Ver ocultos`, `[L] Avisos`, `[0] Voltar` e mensagem com capacidade/canal. O laço de seleção filtrada foi extraído para `SelecaoFiltrada` e é reutilizado pelas etapas 2 e 3 (e pelas próximas).
+
 *Persona: usuário iniciante (leigo)*
 
 COMO usuário iniciante que não entende de frequência de memória,
@@ -307,10 +309,10 @@ PARA QUE eu saiba se estou pagando por desempenho que o meu PC não vai entregar
 - Os avisos gerados ficam registrados para o resumo final.
 
 **Tarefas:**
-- ⬜ **ST-006.1 (CLI):** `EtapaMemoria` (`pcbuilder/cli/etapas/EtapaMemoria.java`) com linha de apoio contendo capacidade total e canal (calculados, nunca fixos).
-- ⬜ **ST-006.2 (Regras):** habilitar `FiltroTipoMemoria`, `FiltroSlotsMemoria` e os avisos `L04` (frequência efetiva/latência) e os alertas de `C02`/`C03` (EXPO, single channel).
-- ⬜ **ST-006.3 (Regras):** `CalculadoraMemoria.capacidadeTotalGB` e `memoriaEmDualChannel` usados na linha de apoio e no resumo.
-- ⬜ **ST-006.4 (Teste):** placa 6000 + RAM 8000 (marcado `[!]`, selecionável, aviso correto); RAM DDR4 oculta com motivo; RAM 2x32 GB acima do limite oculta; 1 pente gera aviso de single channel; EXPO não suportado gera aviso.
+- ✅ **ST-006.1 (CLI):** `EtapaMemoria` (`pcbuilder/cli/etapas/EtapaMemoria.java`) com linha de apoio contendo capacidade total e canal (calculados, nunca fixos).
+- ✅ **ST-006.2 (Regras):** habilitar `FiltroTipoMemoria`, `FiltroSlotsMemoria` e os avisos `L04` (frequência efetiva/latência) e os alertas de `C02`/`C03` (EXPO, single channel).
+- ✅ **ST-006.3 (Regras):** `CalculadoraMemoria.capacidadeTotalGB` e `memoriaEmDualChannel` usados na linha de apoio e no resumo.
+- ✅ **ST-006.4 (Teste):** placa 6000 + RAM 8000 (marcado `[!]`, selecionável, aviso correto); RAM DDR4 oculta com motivo; RAM 2x32 GB acima do limite oculta; 1 pente gera aviso de single channel; EXPO não suportado gera aviso.
 
 ---
 

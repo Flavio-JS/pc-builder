@@ -16,3 +16,4 @@ java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.MontagemG
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.FiltroEtapaTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.LimitacoesTeste
 java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaPlacaMaeTeste
+java -cp "build/classes${SEPARADOR}build/classes-test" pcbuilder.teste.EtapaMemoriaTeste

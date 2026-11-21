@@ -8,6 +8,7 @@ import pcbuilder.analise.filtro.FiltroEtapa;
 import pcbuilder.analise.filtro.ListaFiltrada;
 import pcbuilder.analise.limitacao.AvaliadorLimitacoes;
 import pcbuilder.analise.limitacao.TextosLimitacao;
+import pcbuilder.cli.etapas.EtapaMemoria;
 import pcbuilder.cli.etapas.EtapaPlacaMae;
 import pcbuilder.cli.etapas.EtapaProcessador;
 import pcbuilder.cli.etapas.ResultadoEtapa;
@@ -26,10 +27,10 @@ import pcbuilder.servico.MontagemGuiada;
  * usuario sai do fluxo (cancelou ou a base nao tem a categoria), o menu volta a
  * aparecer.</p>
  *
- * <p>As etapas 1 (processador) e 2 (placa-mae) ja existem. Ao avancar da etapa 2 o
- * programa aplica o filtro de compatibilidade (HU-003) e mostra quantos itens da proxima
- * etapa encaixam na escolha feita, voltando ao menu sem manter a montagem parcial. A tela
- * completa das etapas 3 a 6 entra nas HUs 006 a 009.</p>
+ * <p>As etapas 1 a 3 (processador, placa-mae e memoria) ja existem. Ao avancar da etapa
+ * 3 o programa aplica o filtro de compatibilidade (HU-003) e mostra quantos itens da
+ * proxima etapa encaixam na escolha feita, voltando ao menu sem manter a montagem
+ * parcial. A tela completa das etapas 4 a 6 entra nas HUs 007 a 009.</p>
  */
 public final class MenuPrincipal {
 
@@ -46,7 +47,7 @@ public final class MenuPrincipal {
     public static final String MENSAGEM_OPCAO_INVALIDA = "Digite o numero de uma das opcoes.";
 
     private static final String AVISO_ETAPAS_PENDENTES =
-            "As etapas 3 a 6 entram nas HUs 006 a 009. Voltando ao menu principal.";
+            "As etapas 4 a 6 entram nas HUs 007 a 009. Voltando ao menu principal.";
     private static final String PREFIXO_PREVIA_FILTRO = "Filtro da proxima etapa: ";
 
     private final CatalogoMock catalogo;
@@ -143,6 +144,19 @@ public final class MenuPrincipal {
             }
             if (categoria == CategoriaComponente.PLACA_MAE) {
                 EtapaPlacaMae etapa = new EtapaPlacaMae(terminal, fluxo, filtro, avaliador);
+                ResultadoEtapa resultado = etapa.executar();
+                if (resultado == ResultadoEtapa.VOLTAR) {
+                    fluxo.etapaAnterior();
+                    continue;
+                }
+                if (resultado != ResultadoEtapa.CONCLUIDA) {
+                    return;
+                }
+                fluxo.proximaEtapa();
+                continue;
+            }
+            if (categoria == CategoriaComponente.MEMORIA) {
+                EtapaMemoria etapa = new EtapaMemoria(terminal, fluxo, filtro, avaliador);
                 ResultadoEtapa resultado = etapa.executar();
                 if (resultado == ResultadoEtapa.VOLTAR) {
                     fluxo.etapaAnterior();

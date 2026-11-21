@@ -116,6 +116,23 @@ public final class TextosLimitacao {
                 + " para se proteger do calor.";
     }
 
+    /** C02: o perfil EXPO/XMP do kit nao e suportado pela placa-mae. */
+    public static String expo(Memoria memoria, PlacaMae placaMae) {
+        Integer jedec = memoria.getFrequenciaJEDECBaseMTs();
+        return "esta memoria foi feita para o perfil " + perfis(memoria)
+                + " e a placa-mae " + nome(placaMae) + " nao suporta esse perfil: o kit vai"
+                + " rodar no perfil JEDEC"
+                + (jedec != null && jedec > 0 ? " (" + jedec + " MT/s)" : "")
+                + ", abaixo da frequencia anunciada.";
+    }
+
+    private static String perfis(Memoria memoria) {
+        if (memoria.isPerfilEXPO() && memoria.isPerfilXMP()) {
+            return "EXPO/XMP";
+        }
+        return memoria.isPerfilEXPO() ? "EXPO" : "XMP";
+    }
+
     /** C09: a placa pode precisar de atualizacao de BIOS para a CPU. */
     public static String bios(PlacaMae placaMae, Processador cpu) {
         String detalhe = placaMae.isSuportaAtualizacaoBIOSSemCPU()

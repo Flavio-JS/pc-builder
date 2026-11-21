@@ -416,6 +416,8 @@ public final class LimitacoesTeste {
                 .canaisMemoria(2)
                 .capacidadeMaximaMemoriaGB(192)
                 .frequenciaMemoriaMaximaMTs(frequenciaMaxima)
+                .suportaPerfilEXPO(true)
+                .suportaPerfilXMP(true)
                 .vrmFasesCPU(fases)
                 .vrmCorrentePorFaseA(correntePorFase)
                 .vrmPossuiDissipador(dissipador)

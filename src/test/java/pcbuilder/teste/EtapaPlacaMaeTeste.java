@@ -346,6 +346,8 @@ public final class EtapaPlacaMaeTeste {
                 .canaisMemoria(2)
                 .capacidadeMaximaMemoriaGB(192)
                 .frequenciaMemoriaMaximaMTs(6000)
+                .suportaPerfilEXPO(true)
+                .suportaPerfilXMP(true)
                 .vrmFasesCPU(8)
                 .vrmCorrentePorFaseA(50)
                 .vrmPossuiDissipador(true)
