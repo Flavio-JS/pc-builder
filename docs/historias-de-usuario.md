@@ -474,7 +474,18 @@ PARA QUE eu ajuste a configuração sem refazer as outras cinco escolhas.
 - ✅ **ST-011.2 (Regras):** `RevalidadorMontagem` (`pcbuilder/analise/filtro/RevalidadorMontagem.java`) rodando as regras duras (inclusive C10/C14) sobre as peças **já escolhidas** e devolvendo as etapas inválidas com o motivo (C06 também cobre CPU sem iGPU e sem GPU).
 - ✅ **ST-011.3 (CLI):** ação `[T]` na `TelaResumo`, `[R] Remover` nas etapas opcionais e navegação de volta ao resumo (`[0] Voltar`, sem cancelar a montagem).
 - ✅ **ST-011.4 (Regras):** `Montagem.limparLimitacoesDe(categoria)` para descartar os avisos da peça substituída. *(Método criado junto com a HU-004, que acumula os avisos na montagem; a troca de peça em si continua na HU-011.)*
-- ✅ **ST-011.5 (Teste):** trocar só a RAM mantendo o resto; trocar CPU para outro soquete (etapa 2 apontada); trocar GPU por uma que exige 16 pinos com fonte de 8 pinos (etapa 6 apontada); remover GPU em CPU com iGPU; total recalculado. *(63 verificações em `TrocaPecaTeste`, incluindo a confirmação `S/N`, o desfazer da troca no `[0] Voltar` e o fluxo completo pelo menu.)*
+- ✅ **ST-011.5 (Teste):** trocar só a RAM mantendo o resto; trocar CPU para outro soquete (etapa 2 apontada); trocar GPU por uma que exige 16 pinos com fonte de 8 pinos (etapa 6 apontada); remover GPU em CPU com iGPU; total recalculado. *(78 verificações em `TrocaPecaTeste`, incluindo a confirmação `S/N`, o desfazer da troca no `[0] Voltar`, a troca de escolha no prompt de aviso, a variante `2x` de memória e o fluxo completo pelo menu.)*
+
+---
+
+## 6.1 Melhorias de usabilidade (pós-HU-011)
+
+- As listas das seis etapas são exibidas em **ordem crescente de preço** (empates mantêm a ordem da base) e cada etapa limpa a tela antes de começar;
+- As peças já escolhidas aparecem no **topo** de cada etapa (`Processador selecionado: ... - R$ ...`) e um **lembrete compacto da etapa** é repetido junto ao prompt, no fim da lista;
+- As colunas separadas por `|` na linha de apoio são **alinhadas** pela maior largura de cada coluna; o `[!]` não desloca mais a numeração;
+- No aviso de uma seleção, o prompt aceita **Enter para confirmar ou outro número para trocar a escolha** (corrige o caso de escolher uma memória com aviso e digitar outra);
+- Kits de memória de **1 pente** ganham a variante **`2x`** (mesmo modelo com mais um pente, o dobro da capacidade e do preço estimado), para o usuário montar dual channel direto na lista;
+- A mensagem de eficiência da fonte mostra `percentualCargaFonte: 13% fora de 40-60%` (antes o `>` dava a entender que 13% era maior que a faixa).
 
 ---
 

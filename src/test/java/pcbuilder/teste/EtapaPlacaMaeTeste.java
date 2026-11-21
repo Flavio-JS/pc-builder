@@ -142,7 +142,7 @@ public final class EtapaPlacaMaeTeste {
         Assercao.verdadeiro("etapa 2: barra marca CPU concluida e placa atual",
                 texto.contains("[+Processador]") && texto.contains(">>[Placa-mae]<<"));
         Assercao.verdadeiro("etapa 2: linha de apoio montada pelos campos",
-                texto.contains(ResumoPlacaMae.linhaDeApoio(primeira)));
+                texto.contains(apoioAlinhado(lista)));
         Assercao.verdadeiro("etapa 2: mensagem de selecao",
                 texto.contains("Placa-mae selecionada: "
                         + TabelaComponentes.nomeExibicao(primeira)));
@@ -272,7 +272,7 @@ public final class EtapaPlacaMaeTeste {
                 .getCompativeis().get(0);
         boolean temAviso = !AVALIADOR.avaliar(soCpu, primeira).isEmpty();
 
-        String entrada = "1\n" + indiceLga + "\n0\n" + indiceAm5 + "\n1\n"
+        String entrada = "1\n" + indiceLga + "\n0\n" + indiceAm5 + "\nS\n1\n"
                 + (temAviso ? "\n" : "");
         Saida saida = new Saida(entrada);
         int codigo = new MenuPrincipal(CATALOGO, saida.terminal).executar();
@@ -376,6 +376,13 @@ public final class EtapaPlacaMaeTeste {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("A regra " + regraId
                         + " nao gerou aviso. Avisos: " + avisos));
+    }
+
+    /** Linha de apoio do primeiro compativel, com as colunas alinhadas como na tela. */
+    private static String apoioAlinhado(ListaFiltrada lista) {
+        List<String> apoios = lista.getCompativeis().stream()
+                .map(ResumoPlacaMae::linhaDeApoio).toList();
+        return TabelaComponentes.alinharApoios(apoios).get(0);
     }
 
     private static String linhaCom(String texto, String trecho) {

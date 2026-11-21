@@ -19,7 +19,8 @@ import pcbuilder.servico.ValidadorCadastro;
  * entram no catalogo normalmente.</p>
  *
  * <p>Os componentes sao agregados em {@code Map<CategoriaComponente,
- * List<Componente>>}, que e a estrutura usada pelas etapas do fluxo guiado.</p>
+ * List<Componente>>} e cada categoria fica ordenada pelo menor preco
+ * ({@link Componente#POR_PRECO}); as telas herdam essa ordem.</p>
  */
 public final class CatalogoMock {
 
@@ -63,6 +64,7 @@ public final class CatalogoMock {
 
         Map<CategoriaComponente, List<Componente>> imutavel = new EnumMap<>(CategoriaComponente.class);
         for (Map.Entry<CategoriaComponente, List<Componente>> entrada : agrupado.entrySet()) {
+            entrada.getValue().sort(Componente.POR_PRECO);
             imutavel.put(entrada.getKey(), List.copyOf(entrada.getValue()));
         }
         return new CatalogoMock(imutavel, validacao);

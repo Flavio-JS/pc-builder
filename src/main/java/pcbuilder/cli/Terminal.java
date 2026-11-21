@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -93,6 +94,32 @@ public final class Terminal {
     /** Imprime uma linha em branco. */
     public void linhaEmBranco() {
         linha("");
+    }
+
+    /**
+     * Limpa a tela do terminal para a proxima etapa comecar do topo.
+     *
+     * <p>So age quando a saida e o console real ({@link System#out}) e existe um
+     * terminal interativo; nos testes (saida em memoria) e quando a saida esta
+     * redirecionada nao imprime nada. No Windows usa {@code cls}; nos demais sistemas
+     * usa {@code clear}, com ANSI como ultimo recurso.</p>
+     */
+    public void limparTela() {
+        if (saida != System.out || System.console() == null) {
+            return;
+        }
+        try {
+            ProcessBuilder limpeza = System.getProperty("os.name", "")
+                    .toLowerCase(Locale.ROOT).contains("win")
+                            ? new ProcessBuilder("cmd", "/c", "cls")
+                            : new ProcessBuilder("clear");
+            limpeza.inheritIO().start().waitFor();
+        } catch (IOException causa) {
+            saida.print("\u001b[2J\u001b[H");
+            saida.flush();
+        } catch (InterruptedException causa) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**

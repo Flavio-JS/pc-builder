@@ -1,6 +1,7 @@
 package pcbuilder.modelo;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -20,6 +21,16 @@ import pcbuilder.enums.CategoriaComponente;
  * chave e exatamente o nome do campo no modelo de dados.</p>
  */
 public abstract class Componente {
+
+    /**
+     * Ordem das listas do fluxo: menor preco primeiro; peca sem preco fica no fim.
+     *
+     * <p>O empate mantem a ordem da base (ordenacao estavel), para a lista nao "pular"
+     * entre execucoes.</p>
+     */
+    public static final Comparator<Componente> POR_PRECO = Comparator.comparing(
+            Componente::getPrecoMedioBRL,
+            Comparator.nullsLast(Comparator.naturalOrder()));
 
     private final String id;
     private final String modelo;

@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.mock.CatalogoMock;
 import pcbuilder.modelo.Componente;
+import pcbuilder.modelo.Memoria;
 import pcbuilder.modelo.Montagem;
 
 /**
@@ -88,6 +89,11 @@ public final class FiltroEtapa {
     /**
      * Separa os componentes da categoria em compativeis e ocultos.
      *
+     * <p>Na etapa de memoria, cada kit de 1 pente ganha tambem a variante
+     * {@code 2x} (mesmo modelo com mais um pente, o dobro da capacidade e do preco),
+     * para o usuario poder montar o dual channel sem sair da lista. A variante so
+     * entra quando passa nas mesmas regras duras (slots/capacidade).</p>
+     *
      * @param categoria categoria que a etapa esta listando
      * @param montagem pecas ja escolhidas
      * @return lista filtrada com os motivos dos itens ocultos
@@ -107,7 +113,28 @@ public final class FiltroEtapa {
             ocultos.add(new ItemOculto(candidato, motivo.get()));
             registro.accept("oculto: " + candidato + " - incompativel: " + motivo.get());
         }
-        return new ListaFiltrada(categoria, compativeis, ocultos);
+        if (categoria == CategoriaComponente.MEMORIA) {
+            compativeis.addAll(variantesComDoisPentes(compativeis, montagem));
+        }
+        compativeis.sort(Componente.POR_PRECO);
+        return new ListaFiltrada(categoria, compativeis, ocultos,
+                catalogo.porCategoria(categoria).size());
+    }
+
+    /** Variantes {@code 2x} dos kits de 1 pente que continuam compativeis. */
+    private List<Componente> variantesComDoisPentes(List<Componente> compativeis,
+            Montagem montagem) {
+        List<Componente> variantes = new ArrayList<>();
+        for (Componente componente : compativeis) {
+            if (componente instanceof Memoria memoria && memoria.getQuantidadePentes() == 1) {
+                Memoria variante = memoria.comPenteAdicional();
+                if (motivoParaOcultar(CategoriaComponente.MEMORIA, montagem, variante)
+                        .isEmpty()) {
+                    variantes.add(variante);
+                }
+            }
+        }
+        return variantes;
     }
 
     /** Primeira regra da categoria que reprovar o candidato define o motivo. */

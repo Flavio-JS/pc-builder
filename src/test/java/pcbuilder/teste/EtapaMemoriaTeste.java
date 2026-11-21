@@ -138,7 +138,7 @@ public final class EtapaMemoriaTeste {
                 texto.contains("[+Processador]") && texto.contains("[+Placa-mae]")
                         && texto.contains(">>[Memoria]<<"));
         Assercao.verdadeiro("etapa 3: linha marcada com [!]",
-                linhaCom(texto, ResumoMemoria.linhaDeApoio(alvo))
+                linhaCom(texto, apoioAlinhado(lista, alvo))
                         .startsWith(TabelaComponentes.MARCADOR_LIMITACAO));
         Assercao.verdadeiro("etapa 3: aviso cita 6000 MT/s", texto.contains("6000 MT/s"));
         Assercao.verdadeiro("etapa 3: aviso cita ~25%", texto.contains("~25%"));
@@ -274,7 +274,7 @@ public final class EtapaMemoriaTeste {
         Assercao.verdadeiro("EXPO: aviso nomeia o perfil e o JEDEC",
                 texto.contains("EXPO") && texto.contains("JEDEC"));
         Assercao.verdadeiro("EXPO: linha marcada com [!]",
-                linhaCom(texto, ResumoMemoria.linhaDeApoio(alvo))
+                linhaCom(texto, apoioAlinhado(lista, alvo))
                         .startsWith(TabelaComponentes.MARCADOR_LIMITACAO));
         Assercao.verdadeiro("EXPO: aviso acumulado",
                 fluxo.getMontagem().getLimitacoes().stream()
@@ -453,6 +453,14 @@ public final class EtapaMemoriaTeste {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("A regra " + regraId
                         + " nao gerou aviso. Avisos: " + avisos));
+    }
+
+    /** Linha de apoio do alvo, com as colunas alinhadas como na tela. */
+    private static String apoioAlinhado(ListaFiltrada lista, Componente alvo) {
+        int indice = lista.getCompativeis().indexOf(alvo);
+        List<String> apoios = lista.getCompativeis().stream()
+                .map(ResumoMemoria::linhaDeApoio).toList();
+        return TabelaComponentes.alinharApoios(apoios).get(indice);
     }
 
     private static String linhaCom(String texto, String trecho) {

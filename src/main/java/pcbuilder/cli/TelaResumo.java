@@ -16,8 +16,7 @@ import pcbuilder.relatorio.TabelaResumo;
  * rodape de comandos.
  *
  * <p>Comandos: {@code [T] Trocar uma peca} (HU-011), {@code [N] Nova montagem} e
- * {@code [0] Sair}. Enquanto a HU-011 nao existe, {@code [T]} apenas explica que a troca
- * chega nela e reapresenta o resumo.</p>
+ * {@code [0] Sair}.</p>
  */
 public final class TelaResumo {
 
@@ -100,9 +99,11 @@ public final class TelaResumo {
      * Mostra o resumo e processa os comandos do rodape.
      *
      * @param resumo resumo da montagem (completa)
-     * @return {@link Resultado#NOVA_MONTAGEM} ou {@link Resultado#SAIR}
+     * @return {@link Resultado#TROCAR}, {@link Resultado#NOVA_MONTAGEM} ou
+     *         {@link Resultado#SAIR}
      */
     public Resultado executar(ResumoMontagem resumo) {
+        terminal.limparTela();
         while (true) {
             imprimir(resumo);
             Optional<String> entrada = terminal.perguntar(">");
@@ -130,6 +131,7 @@ public final class TelaResumo {
      * @return o numero da etapa escolhida (1 a 6) ou {@code 0} para voltar ao resumo
      */
     public int escolherEtapa(ResumoMontagem resumo) {
+        terminal.limparTela();
         while (true) {
             terminal.linha(TITULO_TROCA);
             for (ResumoMontagem.LinhaResumo linha : resumo.getLinhas()) {

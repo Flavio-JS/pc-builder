@@ -1,5 +1,6 @@
 package pcbuilder.cli;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -7,6 +8,7 @@ import pcbuilder.analise.filtro.ItemOculto;
 import pcbuilder.analise.filtro.ListaFiltrada;
 import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.config.OrdemEtapas;
+import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.modelo.Componente;
 import pcbuilder.modelo.Limitacao;
 import pcbuilder.modelo.Montagem;
@@ -39,12 +41,15 @@ public final class TelaEtapa {
     public static final String COMANDO_OCULTOS = "M";
     /** Comando de rodape das etapas que tem itens ocultos. */
     public static final String RODAPE_OCULTOS = "[" + COMANDO_OCULTOS + "] Ver ocultos";
-    /** Tecla que relê os avisos de limitacao acumulados (HU-004). */
+    /** Tecla que rele os avisos de limitacao acumulados (HU-004). */
     public static final String COMANDO_AVISOS = "L";
     /** Comando de rodape das etapas que tem avisos de limitacao. */
     public static final String RODAPE_AVISOS = "[" + COMANDO_AVISOS + "] Avisos";
     /** Prompt exibido depois do bloco de aviso de uma selecao. */
     public static final String MENSAGEM_CONTINUAR = "[Enter] para continuar";
+    /** Prompt do aviso que tambem aceita trocar a escolha digitando outro numero. */
+    public static final String MENSAGEM_CONFIRMAR_OU_TROCAR =
+            MENSAGEM_CONTINUAR + " ou o numero de outra opcao";
     /** Mensagem exibida quando o filtro nao deixa nenhum item selecionavel. */
     public static final String MENSAGEM_SEM_COMPATIVEIS =
             "Nenhum componente compativel com a sua configuracao ate aqui.";
@@ -91,6 +96,77 @@ public final class TelaEtapa {
     /** Imprime a barra de progresso textual no topo da etapa. */
     public void imprimirBarraProgresso(int etapaAtual) {
         terminal.linha(barraProgresso(etapaAtual));
+    }
+
+    /**
+     * Lista as pecas ja escolhidas nas outras etapas (HU-011), com preco.
+     *
+     * <p>Fica no topo da tela para o usuario consultar o que ja escolheu sem rolar a
+     * lista. A peca da etapa atual nao entra: ela e a que esta sendo escolhida.</p>
+     *
+     * @param montagem pecas escolhidas ate aqui
+     * @param etapaAtual etapa exibida (a peca dela fica de fora)
+     */
+    public void imprimirPecasEscolhidas(Montagem montagem, int etapaAtual) {
+        for (int etapa = 1; etapa <= OrdemEtapas.TOTAL_ETAPAS; etapa++) {
+            if (etapa == etapaAtual) {
+                continue;
+            }
+            CategoriaComponente categoria = OrdemEtapas.categoria(etapa);
+            montagem.obter(categoria).ifPresent(componente -> terminal.linha(
+                    rotuloSelecionado(categoria) + ": "
+                            + TabelaComponentes.nomeExibicao(componente) + " - "
+                            + FormatadorMoeda.reais(componente.getPrecoMedioBRL())));
+        }
+    }
+
+    /**
+     * Linha compacta de contexto exibida junto ao prompt, no fim da lista.
+     *
+     * <p>Como as listas tem centenas de itens, o cabecalho do topo sai da tela; esta
+     * linha lembra a etapa e as pecas ja escolhidas sem exigir rolagem.</p>
+     *
+     * @param montagem pecas escolhidas ate aqui
+     * @param etapaAtual etapa exibida
+     */
+    public void imprimirContexto(Montagem montagem, int etapaAtual) {
+        List<String> partes = new ArrayList<>();
+        partes.add("Etapa " + etapaAtual + " - "
+                + OrdemEtapas.categoria(etapaAtual).getRotulo()
+                + " (" + (OrdemEtapas.obrigatoria(etapaAtual, montagem)
+                        ? "obrigatorio" : "opcional") + ")");
+        for (int etapa = 1; etapa <= OrdemEtapas.TOTAL_ETAPAS; etapa++) {
+            if (etapa == etapaAtual) {
+                continue;
+            }
+            CategoriaComponente categoria = OrdemEtapas.categoria(etapa);
+            int numeroEtapa = etapa;
+            montagem.obter(categoria).ifPresent(componente -> partes.add(
+                    OrdemEtapas.rotuloCurto(numeroEtapa) + ": "
+                            + TabelaComponentes.nomeExibicao(componente)));
+        }
+        terminal.linha(TabelaComponentes.truncar(String.join(" | ", partes),
+                TabelaComponentes.LARGURA));
+    }
+
+    /** Rotulo da peca ja escolhida, conjugado com o genero da categoria. */
+    private static String rotuloSelecionado(CategoriaComponente categoria) {
+        switch (categoria) {
+            case CPU:
+                return "Processador selecionado";
+            case PLACA_MAE:
+                return "Placa-mae selecionada";
+            case MEMORIA:
+                return "Memoria selecionada";
+            case PLACA_VIDEO:
+                return "Placa de video selecionada";
+            case ARMAZENAMENTO:
+                return "Armazenamento selecionado";
+            case FONTE:
+                return "Fonte selecionada";
+            default:
+                return "Peca selecionada";
+        }
     }
 
     /**
@@ -151,10 +227,14 @@ public final class TelaEtapa {
         terminal.linha(TabelaComponentes.cabecalho());
         imprimirSeparador();
         List<Componente> compativeis = lista.getCompativeis();
+        List<String> apoios = new ArrayList<>();
+        for (Componente componente : compativeis) {
+            apoios.add(linhaDeApoio == null ? "" : linhaDeApoio.apply(componente));
+        }
+        apoios = TabelaComponentes.alinharApoios(apoios);
         int comAviso = 0;
         for (int indice = 0; indice < compativeis.size(); indice++) {
             Componente componente = compativeis.get(indice);
-            String apoio = linhaDeApoio == null ? "" : linhaDeApoio.apply(componente);
             List<Limitacao> avisos = limitacoes == null
                     ? List.of()
                     : limitacoes.apply(componente);
@@ -167,7 +247,7 @@ public final class TelaEtapa {
                     indice + 1,
                     TabelaComponentes.nomeExibicao(componente),
                     FormatadorMoeda.reais(componente.getPrecoMedioBRL()),
-                    apoio));
+                    apoios.get(indice)));
         }
         imprimirSeparador();
         terminal.linha(textoRodape(lista, comAviso));
@@ -291,10 +371,25 @@ public final class TelaEtapa {
         if (avisos == null || avisos.isEmpty()) {
             return;
         }
+        imprimirAviso(avisos);
+        terminal.perguntar(MENSAGEM_CONTINUAR);
+    }
+
+    /**
+     * Imprime o bloco de aviso de uma selecao sem pausar.
+     *
+     * <p>Usado pelo laco da etapa quando o prompt tambem aceita outro numero: quem
+     * escolhe uma peca com aviso pode confirmar com Enter ou trocar a escolha.</p>
+     *
+     * @param avisos limitacoes da peca escolhida (vazio quando nao ha nada a avisar)
+     */
+    public void imprimirAviso(List<Limitacao> avisos) {
+        if (avisos == null || avisos.isEmpty()) {
+            return;
+        }
         for (Limitacao limitacao : avisos) {
             imprimirLimitacao(limitacao);
         }
-        terminal.perguntar(MENSAGEM_CONTINUAR);
     }
 
     /**

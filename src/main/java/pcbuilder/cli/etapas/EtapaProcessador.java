@@ -1,5 +1,6 @@
 package pcbuilder.cli.etapas;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import pcbuilder.analise.limitacao.TextosLimitacao;
 import pcbuilder.cli.TabelaComponentes;
 import pcbuilder.cli.TelaEtapa;
 import pcbuilder.cli.Terminal;
+import pcbuilder.enums.CategoriaComponente;
 import pcbuilder.modelo.Componente;
 import pcbuilder.modelo.Limitacao;
 import pcbuilder.modelo.Montagem;
@@ -84,7 +86,10 @@ public final class EtapaProcessador {
             boolean aPartirDoResumo) {
         this.terminal = terminal;
         this.fluxo = fluxo;
-        this.processadores = processadores == null ? List.of() : List.copyOf(processadores);
+        List<Componente> ordenados = new ArrayList<>(
+                processadores == null ? List.of() : processadores);
+        ordenados.sort(Componente.POR_PRECO);
+        this.processadores = List.copyOf(ordenados);
         this.tela = new TelaEtapa(terminal);
         this.avaliador = Objects.requireNonNull(avaliador, "avaliador");
         this.aPartirDoResumo = aPartirDoResumo;
@@ -97,6 +102,8 @@ public final class EtapaProcessador {
      * @return o que aconteceu, para o menu principal decidir o proximo passo
      */
     public ResultadoEtapa executar() {
+        terminal.limparTela();
+        tela.imprimirPecasEscolhidas(fluxo.getMontagem(), fluxo.etapaAtual());
         tela.imprimirCabecalho(fluxo.etapaAtual(), fluxo.getMontagem());
         tela.imprimirBarraProgresso(fluxo.etapaAtual());
 
@@ -135,7 +142,16 @@ public final class EtapaProcessador {
                 continue;
             }
 
-            selecionar(escolhido.get());
+            Componente novo = escolhido.get();
+            Optional<Componente> atual = fluxo.getMontagem().obter(CategoriaComponente.CPU);
+            if (atual.isPresent() && !Objects.equals(atual.get(), novo)
+                    && !terminal.confirmar("Trocar "
+                            + TabelaComponentes.nomeExibicao(atual.get()) + " por "
+                            + TabelaComponentes.nomeExibicao(novo) + "?")) {
+                continue;
+            }
+
+            selecionar(novo);
             return ResultadoEtapa.CONCLUIDA;
         }
     }
@@ -144,18 +160,24 @@ public final class EtapaProcessador {
         tela.imprimirSeparador();
         terminal.linha(TabelaComponentes.cabecalho());
         tela.imprimirSeparador();
+        List<String> apoios = new ArrayList<>();
+        for (Componente componente : processadores) {
+            apoios.add(linhaDeApoio(componente));
+        }
+        apoios = TabelaComponentes.alinharApoios(apoios);
         for (int indice = 0; indice < processadores.size(); indice++) {
             Componente componente = processadores.get(indice);
             terminal.linha(TabelaComponentes.linha(
                     indice + 1,
                     TabelaComponentes.nomeExibicao(componente),
                     FormatadorMoeda.reais(componente.getPrecoMedioBRL()),
-                    linhaDeApoio(componente)));
+                    apoios.get(indice)));
         }
         int quantidade = processadores.size();
         terminal.linha(quantidade + (quantidade == 1
                 ? " processador disponivel."
                 : " processadores disponiveis."));
+        tela.imprimirContexto(fluxo.getMontagem(), fluxo.etapaAtual());
         tela.imprimirRodape(aPartirDoResumo ? SelecaoFiltrada.RODAPE_VOLTAR : RODAPE);
     }
 

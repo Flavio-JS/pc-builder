@@ -121,7 +121,7 @@ public final class EtapaArmazenamentoTeste {
         Assercao.verdadeiro("etapa 5: barra marca as etapas anteriores",
                 texto.contains("[+Placa-mae]") && texto.contains(">>[Armazenamento]<<"));
         Assercao.verdadeiro("etapa 5: linha de apoio da midia",
-                texto.contains(ResumoArmazenamento.linhaDeApoio(alvo)));
+                texto.contains(apoioAlinhado(lista, alvo)));
         Assercao.verdadeiro("etapa 5: mensagem de selecao",
                 texto.contains("Armazenamento selecionado: "
                         + TabelaComponentes.nomeExibicao(alvo)));
@@ -220,7 +220,7 @@ public final class EtapaArmazenamentoTeste {
                 ResultadoEtapa.CONCLUIDA, resultado);
         String texto = saida.texto();
         Assercao.verdadeiro("L10: linha marcada com [!]",
-                linhaCom(texto, ResumoArmazenamento.linhaDeApoio(alvo))
+                linhaCom(texto, apoioAlinhado(lista, alvo))
                         .startsWith(TabelaComponentes.MARCADOR_LIMITACAO));
         Assercao.verdadeiro("L10: aviso cita a perda de velocidade",
                 texto.contains("perda de") && texto.contains("velocidade"));
@@ -441,6 +441,14 @@ public final class EtapaArmazenamentoTeste {
             }
         }
         throw new IllegalStateException("base sem CPU com videoIntegrado=" + videoIntegrado);
+    }
+
+    /** Linha de apoio do alvo, com as colunas alinhadas como na tela. */
+    private static String apoioAlinhado(ListaFiltrada lista, Componente alvo) {
+        int indice = lista.getCompativeis().indexOf(alvo);
+        List<String> apoios = lista.getCompativeis().stream()
+                .map(ResumoArmazenamento::linhaDeApoio).toList();
+        return TabelaComponentes.alinharApoios(apoios).get(indice);
     }
 
     private static String linhaCom(String texto, String trecho) {

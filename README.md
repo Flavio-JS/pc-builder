@@ -11,7 +11,9 @@ principal + etapa 1, escolha do processador), **HU-003** (filtro de compatibilid
 dura), **HU-004** (avisos de limitacao, marcador `[!]`), **HU-005** (etapa 2, placa-mae),
 **HU-006** (etapa 3, memoria), **HU-007** (etapa 4, placa de video condicional),
 **HU-008** (etapa 5, armazenamento), **HU-009** (etapa 6, fonte), **HU-010** (resumo
-final) e **HU-011** (troca de peca no resumo) implementadas.
+final) e **HU-011** (troca de peca no resumo) implementadas, com a rodada de
+**melhorias de usabilidade** (listas por preco, colunas alinhadas, tela limpa, pecas
+escolhidas no topo e variantes `2x` de memoria).
 
 * Sem interface grafica, sem banco de dados, **sem dependencia externa** (so o JDK).
 * Dominio imutavel (`Componente` + 6 subclasses) validado por 10 verificacoes de
@@ -37,6 +39,8 @@ final) e **HU-011** (troca de peca no resumo) implementadas.
   calculada (`2x16 GB = 32 GB | 8000 MT/s | CL38 | EXPO: sim`), `[M] Ver ocultos` e os
   avisos L04 (frequencia/single channel) e C02 (EXPO/XMP nao suportado) marcados com
   `[!]`. O caso 8000 MT/s x placa de 6000 MT/s avisa a perda de ~25% e mantem a escolha.
+  Kits de **1 pente** ganham tambem a variante **`2x`** (mais um pente, dobro da
+  capacidade e do preco estimado) para montar dual channel sem sair da lista.
 * **Etapa 4 (placa de video)** condicional ao video integrado da CPU: `(opcional)` com
   `[0] Pular` quando a CPU tem iGPU e `(obrigatorio)` sem pular quando nao tem (C06).
   Filtro C05 e linha de apoio `12 GB GDDR6X | PCIe 4.0 x16 | 220 W | 1x 16-pinos`.
@@ -57,6 +61,10 @@ final) e **HU-011** (troca de peca no resumo) implementadas.
   `Configuracao invalida: a etapa 2 (Placa-Mae) precisa ser revista - ...` e leva o
   usuario direto a etapa apontada. Na etapa 4 opcional ja preenchida existe
   `[R] Remover peca`, que volta a `(nao selecionado)`.
+* **Listas mais legiveis:** itens em ordem crescente de preco, colunas de apoio
+  alinhadas, `[!]` sem deslocar a numeracao, tela limpa no inicio de cada etapa com as
+  pecas ja escolhidas no topo e um lembrete compacto da etapa junto ao prompt. No aviso
+  de uma selecao, o prompt aceita `[Enter]` para confirmar ou o numero de outra opcao.
 * Com `--explicar-filtro`, cada item oculto tambem e escrito no `stderr` (depuracao).
 * Com `--detalhar-limitacoes`, ao selecionar uma peca o programa imprime os dados que
   faltam para calcular alguma regra (`Sem dados para calcular: ...`).
@@ -94,10 +102,11 @@ Base carregada: 17230 componentes, 0 erro(s), 0 aviso(s).
 >
 ```
 
-Apos o `[1]`, a etapa 1 lista os **265 processadores** do catalogo com `#`, `Modelo`,
-`Preco (R$)` e uma linha de apoio (`8 nucleos | AM5 | video integrado: sim`). A
-escolha e feita pelo numero da opcao e o programa imprime
-`Processador selecionado: AMD Ryzen 7 9700X - R$ 1.919,90`.
+Apos o `[1]`, a etapa 1 limpa a tela e lista os **265 processadores** do catalogo do
+menor para o maior preco, com `#`, `Modelo`, `Preco (R$)` e uma linha de apoio
+(`8 nucleos | AM5 | video integrado: sim`). A escolha e feita pelo numero da opcao e o
+programa imprime `Processador selecionado: AMD Ryzen 7 9700X - R$ 1.919,90`; a etapa
+seguinte comeca com essa peca no topo.
 
 Ao avancar, a etapa 2 aplica o filtro por soquete (HU-005) e lista as placas compativeis
 com a linha de apoio montada a partir dos campos; as placas de outro soquete ficam em

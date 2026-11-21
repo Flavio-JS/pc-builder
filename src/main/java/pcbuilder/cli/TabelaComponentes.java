@@ -1,5 +1,8 @@
 package pcbuilder.cli;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pcbuilder.modelo.Componente;
 import pcbuilder.relatorio.FormatadorComponente;
 
@@ -25,6 +28,8 @@ public final class TabelaComponentes {
     private static final int LARGURA_MODELO = 33;
     private static final int LARGURA_PRECO = 12;
     private static final String RODAPE_TRUNCADO = "...";
+    private static final String PREFIXO_MARCADOR = "   ";
+    private static final String SEPARADOR_APOIO = " | ";
 
     private TabelaComponentes() {
         // classe utilitaria: nao deve ser instanciada
@@ -45,7 +50,8 @@ public final class TabelaComponentes {
 
     /** Linha de titulo das colunas {@code #}, {@code Modelo}, {@code Preco (R$)} e apoio. */
     public static String cabecalho() {
-        return String.format(" %3s  %-" + LARGURA_MODELO + "s  %" + LARGURA_PRECO + "s  %s",
+        return PREFIXO_MARCADOR + String.format(
+                " %3s  %-" + LARGURA_MODELO + "s  %" + LARGURA_PRECO + "s  %s",
                 "#", "Modelo", "Preco (R$)", "Apoio");
     }
 
@@ -77,13 +83,62 @@ public final class TabelaComponentes {
      */
     public static String linha(boolean possuiLimitacao, int numero, String modelo, String preco,
             String apoio) {
-        String formato = (possuiLimitacao ? MARCADOR_LIMITACAO : "") + " %3d) %-"
-                + LARGURA_MODELO + "s  %" + LARGURA_PRECO + "s  %s";
+        String formato = (possuiLimitacao ? MARCADOR_LIMITACAO : PREFIXO_MARCADOR)
+                + " %3d) %-" + LARGURA_MODELO + "s  %" + LARGURA_PRECO + "s  %s";
         return String.format(formato,
                 numero,
                 truncar(modelo, LARGURA_MODELO),
                 preco == null ? "" : preco,
                 apoio == null ? "" : apoio);
+    }
+
+    /**
+     * Alinha as colunas separadas por {@code |} das linhas de apoio.
+     *
+     * <p>Para cada posicao de coluna e usada a maior largura entre os itens exibidos;
+     * assim os {@code |} ficam na mesma coluna em toda a lista. A ultima coluna nao
+     * recebe espacos a direita, para nao poluir a tela.</p>
+     *
+     * @param apoios linhas de apoio originais, na ordem de exibicao
+     * @return as linhas com os campos alinhados
+     */
+    public static List<String> alinharApoios(List<String> apoios) {
+        if (apoios == null || apoios.isEmpty()) {
+            return List.of();
+        }
+        List<String[]> campos = new ArrayList<>();
+        int maiorQuantidade = 0;
+        for (String apoio : apoios) {
+            String[] partes = apoio == null || apoio.isBlank()
+                    ? new String[0]
+                    : apoio.split("\\s*\\|\\s*", -1);
+            campos.add(partes);
+            maiorQuantidade = Math.max(maiorQuantidade, partes.length);
+        }
+        int[] larguras = new int[maiorQuantidade];
+        for (String[] partes : campos) {
+            for (int indice = 0; indice < partes.length; indice++) {
+                larguras[indice] = Math.max(larguras[indice], partes[indice].length());
+            }
+        }
+        List<String> alinhados = new ArrayList<>();
+        for (String[] partes : campos) {
+            StringBuilder linha = new StringBuilder();
+            for (int indice = 0; indice < partes.length; indice++) {
+                if (indice > 0) {
+                    linha.append(SEPARADOR_APOIO);
+                }
+                linha.append(partes[indice]);
+                if (indice < partes.length - 1) {
+                    for (int coluna = partes[indice].length(); coluna < larguras[indice];
+                            coluna++) {
+                        linha.append(' ');
+                    }
+                }
+            }
+            alinhados.add(linha.toString());
+        }
+        return alinhados;
     }
 
     /** Moldura superior/inferior da tela. */

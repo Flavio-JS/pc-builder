@@ -353,7 +353,9 @@ public final class LimitacoesTeste {
                 marcada.startsWith("[!]   1)"));
         String normal = TabelaComponentes.linha(1, "X", "R$ 1,00", "");
         Assercao.verdadeiro("tabela: item sem aviso mantem o formato antigo",
-                normal.startsWith("   1)"));
+                normal.startsWith("      1)"));
+        Assercao.iguais("tabela: marcador nao desloca o numero",
+                normal.indexOf("1)"), marcada.indexOf("1)"));
         Assercao.iguais("tabela: marcador publico", "[!]", TabelaComponentes.MARCADOR_LIMITACAO);
     }
 

@@ -92,6 +92,8 @@ public final class SelecaoFiltrada {
         Objects.requireNonNull(categoria, "categoria");
         Objects.requireNonNull(mensagemSelecionada, "mensagemSelecionada");
 
+        terminal.limparTela();
+        tela.imprimirPecasEscolhidas(fluxo.getMontagem(), fluxo.etapaAtual());
         tela.imprimirCabecalho(fluxo.etapaAtual(), fluxo.getMontagem());
         tela.imprimirBarraProgresso(fluxo.etapaAtual());
         if (opcoes.getMensagemInicial() != null) {
@@ -108,6 +110,7 @@ public final class SelecaoFiltrada {
         while (true) {
             tela.imprimirListaFiltrada(lista, linhaDeApoio,
                     componente -> avisos.getOrDefault(componente, List.of()));
+            tela.imprimirContexto(fluxo.getMontagem(), fluxo.etapaAtual());
             tela.imprimirRodape(opcoes.getRodapeZero());
 
             Optional<String> entrada = terminal.perguntar(">");
@@ -141,17 +144,58 @@ public final class SelecaoFiltrada {
                 terminal.linha(MENSAGEM_OPCAO_INVALIDA);
                 continue;
             }
-            Componente novo = escolhido.get();
+            Optional<ResultadoEtapa> resultadoSelecao = selecionarComConfirmacao(fluxo,
+                    categoria, lista, avisos, escolhido.get(), mensagemSelecionada);
+            if (resultadoSelecao.isPresent()) {
+                return resultadoSelecao.get();
+            }
+        }
+    }
+
+    /**
+     * Confirma a escolha: mostra os avisos (podendo trocar por outro numero), pede
+     * {@code S/N} quando a categoria ja tem peca e guarda a peca na montagem.
+     *
+     * @return {@link ResultadoEtapa#CONCLUIDA} quando a peca foi guardada,
+     *         {@link ResultadoEtapa#CANCELADA} no fim da entrada, ou vazio quando o
+     *         usuario recusou a troca e deve voltar para a lista
+     */
+    private Optional<ResultadoEtapa> selecionarComConfirmacao(MontagemGuiada fluxo,
+            CategoriaComponente categoria, ListaFiltrada lista,
+            Map<Componente, List<Limitacao>> avisos, Componente escolhido,
+            Function<Componente, String> mensagemSelecionada) {
+        Componente novo = escolhido;
+        while (true) {
+            List<Limitacao> avisosNovo = avisos.getOrDefault(novo, List.of());
+            if (!avisosNovo.isEmpty()) {
+                tela.imprimirAviso(avisosNovo);
+                Optional<String> resposta = terminal.perguntar(
+                        TelaEtapa.MENSAGEM_CONFIRMAR_OU_TROCAR);
+                if (resposta.isEmpty()) {
+                    return Optional.of(ResultadoEtapa.CANCELADA);
+                }
+                if (!resposta.get().isEmpty()) {
+                    Optional<Componente> outro = escolher(lista, resposta.get());
+                    if (outro.isEmpty()) {
+                        terminal.linha(MENSAGEM_OPCAO_INVALIDA);
+                        continue;
+                    }
+                    novo = outro.get();
+                    continue;
+                }
+            }
+
             Optional<Componente> atual = fluxo.getMontagem().obter(categoria);
             if (atual.isPresent() && !Objects.equals(atual.get(), novo)
                     && !terminal.confirmar("Trocar "
                             + TabelaComponentes.nomeExibicao(atual.get()) + " por "
                             + TabelaComponentes.nomeExibicao(novo) + "?")) {
-                continue;
+                return Optional.empty();
             }
-            selecionar(fluxo.getMontagem(), categoria, novo,
-                    avisos.getOrDefault(novo, List.of()), mensagemSelecionada);
-            return ResultadoEtapa.CONCLUIDA;
+
+            selecionar(fluxo.getMontagem(), categoria, novo, avisosNovo,
+                    mensagemSelecionada);
+            return Optional.of(ResultadoEtapa.CONCLUIDA);
         }
     }
 
@@ -213,7 +257,6 @@ public final class SelecaoFiltrada {
             Function<Componente, String> mensagemSelecionada) {
         montagem.limparLimitacoesDe(categoria);
         montagem.registrarLimitacoes(avisos);
-        tela.imprimirAvisoSelecao(avisos);
         montagem.adicionar(componente);
         terminal.linha(mensagemSelecionada.apply(componente));
         if (terminal.isDetalharLimitacoes()) {

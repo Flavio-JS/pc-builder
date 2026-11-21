@@ -108,8 +108,11 @@ public final class MontagemGuiadaTeste {
                 texto.contains(TabelaComponentes.nomeExibicao(ultimo)));
         Assercao.verdadeiro("etapa 1: contagem de processadores",
                 texto.contains(PROCESSADORES.size() + " processadores disponiveis."));
+        List<String> apoios = PROCESSADORES.stream()
+                .map(MontagemGuiadaTeste::linhaDeApoio).toList();
+        String apoioPrimeiro = TabelaComponentes.alinharApoios(apoios).get(0);
         Assercao.verdadeiro("etapa 1: linha de apoio do processador",
-                texto.contains(linhaDeApoio(primeiro)));
+                texto.contains(apoioPrimeiro));
         Assercao.verdadeiro("etapa 1: mensagem de selecao",
                 texto.contains("Processador selecionado: "
                         + TabelaComponentes.nomeExibicao(primeiro) + " - "
@@ -276,9 +279,16 @@ public final class MontagemGuiadaTeste {
                 linha.length() <= TabelaComponentes.LARGURA);
         Assercao.verdadeiro("tabela: cabecalho cabe na largura fixa",
                 TabelaComponentes.cabecalho().length() <= TabelaComponentes.LARGURA);
-        Assercao.verdadeiro("tabela: numero da opcao alinhado", linha.startsWith(" 265)"));
+        Assercao.verdadeiro("tabela: numero da opcao alinhado", linha.startsWith("    265)"));
         Assercao.verdadeiro("tabela: modelo longo e cortado",
                 TabelaComponentes.linha(1, "X".repeat(60), "R$ 1,00", "").contains("..."));
+        List<String> apoios = TabelaComponentes.alinharApoios(List.of(
+                "8 nucleos | AM5 | video integrado: sim",
+                "24 nucleos | LGA1700 | video integrado: nao"));
+        Assercao.iguais("tabela: primeiro separador do apoio alinhado",
+                apoios.get(0).indexOf("|"), apoios.get(1).indexOf("|"));
+        Assercao.iguais("tabela: segundo separador do apoio alinhado",
+                apoios.get(0).lastIndexOf("|"), apoios.get(1).lastIndexOf("|"));
         Assercao.iguais("tabela: nome exibido junta fabricante e modelo",
                 PROCESSADORES.get(0).getFabricante() + " " + PROCESSADORES.get(0).getModelo(),
                 TabelaComponentes.nomeExibicao(PROCESSADORES.get(0)));

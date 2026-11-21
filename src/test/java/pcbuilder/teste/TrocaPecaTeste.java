@@ -74,6 +74,9 @@ public final class TrocaPecaTeste {
         telaEscolheEtapa();
         etapaVideoRemovePeca();
         etapaTrocaPedeConfirmacao();
+        memoriaComPenteAdicional();
+        avisoPermiteTrocarEscolha();
+        telaMostraPecasEscolhidas();
         etapaProcessadorVoltaDoResumo();
         menuTrocaMemoria();
         menuTrocaInvalidaVoltaSemAlterar();
@@ -304,7 +307,10 @@ public final class TrocaPecaTeste {
         Montagem montagemN = montagem(cpu, placa, reservada);
         MontagemGuiada fluxoN = new MontagemGuiada(montagemN);
         fluxoN.reabrirEtapa(3);
-        Saida negar = new Saida("1\nN\n0\n");
+        Componente nova = FILTRO.filtrar(CategoriaComponente.MEMORIA, montagemN)
+                .getCompativeis().get(0);
+        boolean aviso = !AVALIADOR.avaliar(montagemN, nova).isEmpty();
+        Saida negar = new Saida("1\n" + flag(aviso) + "N\n0\n");
         ResultadoEtapa resultadoN = new EtapaMemoria(negar.terminal, fluxoN, FILTRO,
                 AVALIADOR).executar();
 
@@ -318,16 +324,130 @@ public final class TrocaPecaTeste {
         Montagem montagemS = montagem(cpu, placa, reservada);
         MontagemGuiada fluxoS = new MontagemGuiada(montagemS);
         fluxoS.reabrirEtapa(3);
-        Componente nova = FILTRO.filtrar(CategoriaComponente.MEMORIA, montagemS)
-                .getCompativeis().get(0);
-        boolean aviso = !AVALIADOR.avaliar(montagemS, nova).isEmpty();
-        Saida aceitar = new Saida("1\nS\n" + flag(aviso));
+        Saida aceitar = new Saida("1\n" + flag(aviso) + "S\n");
         ResultadoEtapa resultadoS = new EtapaMemoria(aceitar.terminal, fluxoS, FILTRO,
                 AVALIADOR).executar();
 
         Assercao.iguais("troca: S aplica a troca", ResultadoEtapa.CONCLUIDA, resultadoS);
         Assercao.iguais("troca: S troca a peca", nova,
                 montagemS.obter(CategoriaComponente.MEMORIA).orElse(null));
+    }
+
+    private static void memoriaComPenteAdicional() {
+        Memoria uma = CATALOGO.porCategoria(CategoriaComponente.MEMORIA).stream()
+                .map(Memoria.class::cast)
+                .filter(memoria -> memoria.getQuantidadePentes() == 1
+                        && memoria.getPrecoMedioBRL() != null)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("base sem kit de 1 pente"));
+        Memoria duas = uma.comPenteAdicional();
+
+        Assercao.iguais("memoria: variante tem 2 pentes", 2, duas.getQuantidadePentes());
+        Assercao.iguais("memoria: variante dobra o preco",
+                uma.getPrecoMedioBRL().multiply(BigDecimal.valueOf(2)),
+                duas.getPrecoMedioBRL());
+        Assercao.iguais("memoria: variante dobra a capacidade",
+                uma.getQuantidadePentes() * uma.getCapacidadePorPenteGB() * 2,
+                duas.getQuantidadePentes() * duas.getCapacidadePorPenteGB());
+        Assercao.verdadeiro("memoria: id da variante tem 2x", duas.getId().endsWith("-2x"));
+        Assercao.verdadeiro("memoria: modelo da variante tem 2x",
+                duas.getModelo().endsWith(" 2x"));
+
+        Processador cpu = cpuDoCatalogo(true);
+        PlacaMae placa = FILTRO.filtrar(CategoriaComponente.PLACA_MAE, montagem(cpu))
+                .getCompativeis().stream()
+                .map(PlacaMae.class::cast)
+                .filter(candidata -> candidata.getQuantidadeSlotsMemoria() >= 2)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("base sem placa com 2 slots"));
+        ListaFiltrada lista = FILTRO.filtrar(CategoriaComponente.MEMORIA,
+                montagem(cpu, placa));
+        Memoria original = lista.getCompativeis().stream()
+                .map(Memoria.class::cast)
+                .filter(memoria -> memoria.getQuantidadePentes() == 1)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("lista sem kit de 1 pente"));
+
+        Assercao.verdadeiro("memoria: variante 2x aparece na lista",
+                lista.getCompativeis().contains(original.comPenteAdicional()));
+
+        boolean recusou = false;
+        try {
+            original.comPenteAdicional().comPenteAdicional();
+        } catch (IllegalStateException causa) {
+            recusou = true;
+        }
+        Assercao.verdadeiro("memoria: variante de 2 pentes nao aceita outro pente", recusou);
+    }
+
+    private static void avisoPermiteTrocarEscolha() {
+        Processador cpu = cpuDoCatalogo(true);
+        PlacaMae placa = (PlacaMae) FILTRO.filtrar(CategoriaComponente.PLACA_MAE, montagem(cpu))
+                .getCompativeis().get(0);
+        Montagem base = montagem(cpu, placa);
+        ListaFiltrada lista = FILTRO.filtrar(CategoriaComponente.MEMORIA, base);
+
+        Memoria comAviso = null;
+        int indiceComAviso = 0;
+        Memoria semAviso = null;
+        int indiceSemAviso = 0;
+        for (int indice = 0; indice < lista.getCompativeis().size(); indice++) {
+            Memoria candidata = (Memoria) lista.getCompativeis().get(indice);
+            boolean temAviso = !AVALIADOR.avaliar(base, candidata).isEmpty();
+            if (temAviso && comAviso == null) {
+                comAviso = candidata;
+                indiceComAviso = indice + 1;
+            }
+            if (!temAviso && semAviso == null) {
+                semAviso = candidata;
+                indiceSemAviso = indice + 1;
+            }
+            if (comAviso != null && semAviso != null) {
+                break;
+            }
+        }
+        Assercao.verdadeiro("aviso: lista tem memoria com e sem aviso",
+                comAviso != null && semAviso != null);
+
+        Montagem montagem = montagem(cpu, placa);
+        MontagemGuiada fluxo = new MontagemGuiada(montagem);
+        fluxo.reabrirEtapa(3);
+        Saida saida = new Saida(indiceComAviso + "\n" + indiceSemAviso + "\n");
+        ResultadoEtapa resultado = new EtapaMemoria(saida.terminal, fluxo, FILTRO,
+                AVALIADOR).executar();
+
+        Assercao.iguais("aviso: trocar no prompt conclui", ResultadoEtapa.CONCLUIDA,
+                resultado);
+        Assercao.iguais("aviso: escolha trocada no prompt", semAviso,
+                montagem.obter(CategoriaComponente.MEMORIA).orElse(null));
+        Assercao.verdadeiro("aviso: bloco de aviso exibido",
+                saida.texto().contains("AVISO"));
+    }
+
+    private static void telaMostraPecasEscolhidas() {
+        Processador cpu = cpuDoCatalogo(true);
+        PlacaMae placa = (PlacaMae) FILTRO.filtrar(CategoriaComponente.PLACA_MAE, montagem(cpu))
+                .getCompativeis().get(0);
+        Montagem montagem = montagem(cpu, placa);
+        MontagemGuiada fluxo = new MontagemGuiada(montagem);
+        fluxo.reabrirEtapa(3);
+
+        Saida saida = new Saida("0\n");
+        ResultadoEtapa resultado = new EtapaMemoria(saida.terminal, fluxo, FILTRO,
+                AVALIADOR).executar();
+
+        Assercao.iguais("tela: [0] volta ao resumo", ResultadoEtapa.VOLTAR, resultado);
+        String texto = saida.texto();
+        Assercao.verdadeiro("tela: mostra a CPU escolhida no topo",
+                texto.contains("Processador selecionado: "
+                        + TabelaComponentes.nomeExibicao(cpu) + " - "
+                        + FormatadorMoeda.reais(cpu.getPrecoMedioBRL())));
+        Assercao.verdadeiro("tela: mostra a placa escolhida no topo",
+                texto.contains("Placa-mae selecionada: "
+                        + TabelaComponentes.nomeExibicao(placa) + " - "
+                        + FormatadorMoeda.reais(placa.getPrecoMedioBRL())));
+        Assercao.verdadeiro("tela: contexto lembra a etapa no rodape",
+                texto.contains("Etapa 3 - Memoria (obrigatorio) | Processador:"));
     }
 
     private static void etapaProcessadorVoltaDoResumo() {
@@ -385,7 +505,7 @@ public final class TrocaPecaTeste {
         String entrada = "1\n" + indiceCpu + "\n1\n" + flag(avisoPlaca)
                 + "1\n" + flag(avisoMemoria1) + "0\n"
                 + "1\n" + flag(avisoArmazenamento) + "1\n" + flag(avisoFonte)
-                + "T\n3\n2\nS\n" + flag(avisoMemoria2) + "0\n";
+                + "T\n3\n2\n" + flag(avisoMemoria2) + "S\n0\n";
         Saida saida = new Saida(entrada);
         int codigo = new MenuPrincipal(CATALOGO, saida.terminal).executar();
 

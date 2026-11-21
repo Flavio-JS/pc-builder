@@ -233,7 +233,7 @@ public final class EtapaPlacaVideoTeste {
 
         String texto = saida.texto();
         Assercao.verdadeiro("L05: linha marcada com [!]",
-                linhaCom(texto, ResumoPlacaVideo.linhaDeApoio(alvo))
+                linhaCom(texto, apoioAlinhado(lista, alvo))
                         .startsWith(TabelaComponentes.MARCADOR_LIMITACAO));
         Assercao.verdadeiro("L05: aviso cita a banda e o slot",
                 texto.contains("a banda cai") && texto.contains("PCIe 3.0"));
@@ -389,6 +389,14 @@ public final class EtapaPlacaVideoTeste {
             }
         }
         throw new IllegalStateException("base sem CPU com videoIntegrado=" + videoIntegrado);
+    }
+
+    /** Linha de apoio do alvo, com as colunas alinhadas como na tela. */
+    private static String apoioAlinhado(ListaFiltrada lista, Componente alvo) {
+        int indice = lista.getCompativeis().indexOf(alvo);
+        List<String> apoios = lista.getCompativeis().stream()
+                .map(ResumoPlacaVideo::linhaDeApoio).toList();
+        return TabelaComponentes.alinharApoios(apoios).get(indice);
     }
 
     private static String linhaCom(String texto, String trecho) {

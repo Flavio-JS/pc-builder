@@ -249,7 +249,7 @@ public final class EtapaFonteTeste {
                 saida.texto().contains("Fonte selecionada: "
                         + TabelaComponentes.nomeExibicao(alvo)));
         Assercao.verdadeiro("etapa 6: linha de apoio da fonte",
-                saida.texto().contains(ResumoFonte.linhaDeApoio(alvo)));
+                saida.texto().contains(apoioAlinhado(lista, alvo)));
     }
 
     private static void etapaSemFonteCompativel() {
@@ -533,6 +533,14 @@ public final class EtapaFonteTeste {
     }
 
     /** Linha extra para o aviso de selecao ({@code [Enter]}) quando o item tem aviso. */
+    /** Linha de apoio do alvo, com as colunas alinhadas como na tela. */
+    private static String apoioAlinhado(ListaFiltrada lista, Componente alvo) {
+        int indice = lista.getCompativeis().indexOf(alvo);
+        List<String> apoios = lista.getCompativeis().stream()
+                .map(ResumoFonte::linhaDeApoio).toList();
+        return TabelaComponentes.alinharApoios(apoios).get(indice);
+    }
+
     private static String flag(boolean temAviso) {
         return temAviso ? "\n" : "";
     }

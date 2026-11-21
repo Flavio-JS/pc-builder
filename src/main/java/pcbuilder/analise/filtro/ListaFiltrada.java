@@ -12,7 +12,8 @@ import pcbuilder.modelo.Componente;
 /**
  * Resultado do filtro de uma etapa: o que continua na lista e o que foi ocultado.
  *
- * <p>Os itens compativeis mantem a ordem da base. Os ocultos guardam o motivo para o
+ * <p>Os itens compativeis mantem a ordem do catalogo (menor preco primeiro). Os ocultos
+ * guardam o motivo para o
  * comando {@code [M] Ver ocultos} e para a mensagem de "nenhum compativel", que usa o
  * {@link #motivoPredominante() motivo mais frequente} para explicar ao usuario o que
  * esta travando aquela etapa.</p>
@@ -31,10 +32,24 @@ public final class ListaFiltrada {
      */
     public ListaFiltrada(CategoriaComponente categoria, List<Componente> compativeis,
             List<ItemOculto> ocultos) {
+        this(categoria, compativeis, ocultos,
+                Objects.requireNonNull(compativeis, "compativeis").size()
+                        + Objects.requireNonNull(ocultos, "ocultos").size());
+    }
+
+    /**
+     * @param categoria categoria que estava sendo listada
+     * @param compativeis itens que encaixam na configuracao, na ordem do catalogo
+     * @param ocultos itens removidos, cada um com o motivo
+     * @param totalOriginal quantidade de itens do catalogo antes do filtro (sem contar
+     *        variantes sinteticas, como os kits {@code 2x} da memoria)
+     */
+    public ListaFiltrada(CategoriaComponente categoria, List<Componente> compativeis,
+            List<ItemOculto> ocultos, int totalOriginal) {
         this.categoria = Objects.requireNonNull(categoria, "categoria");
         this.compativeis = List.copyOf(compativeis);
         this.ocultos = List.copyOf(ocultos);
-        this.totalOriginal = this.compativeis.size() + this.ocultos.size();
+        this.totalOriginal = totalOriginal;
     }
 
     public CategoriaComponente getCategoria() {

@@ -98,8 +98,11 @@ public final class TextosLimitacao {
         if (limitacao.getCampoComparado() == null || limitacao.getCampoComparado().isBlank()) {
             return limitacao.getConsequencia();
         }
+        String operador = "percentualCargaFonte".equals(limitacao.getCampoComparado())
+                ? " fora de "
+                : " > ";
         return limitacao.getCampoComparado() + ": " + valorOuTraco(limitacao.getValorDoNovo())
-                + " > " + valorOuTraco(limitacao.getValorSuportado())
+                + operador + valorOuTraco(limitacao.getValorSuportado())
                 + " (" + limitacao.getConsequencia() + ")";
     }
 
@@ -130,8 +133,11 @@ public final class TextosLimitacao {
         String campo = limitacao.getCampoComparado() == null
                 ? ""
                 : limitacao.getCampoComparado() + " ";
+        String operador = "percentualCargaFonte".equals(limitacao.getCampoComparado())
+                ? " fora de "
+                : " > ";
         return MARCADOR + " " + nome(limitacao.getComponenteAfetado()) + ": " + campo
-                + valorOuTraco(limitacao.getValorDoNovo()) + " > "
+                + valorOuTraco(limitacao.getValorDoNovo()) + operador
                 + valorOuTraco(limitacao.getValorSuportado());
     }
 

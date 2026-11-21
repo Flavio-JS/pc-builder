@@ -1,5 +1,6 @@
 package pcbuilder.modelo;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -82,6 +83,51 @@ public final class Memoria extends Componente {
 
     public Integer getAlturaMm() {
         return alturaMm;
+    }
+
+    /**
+     * Kit equivalente com mais um pente, para a opcao "adicionar mais um pente".
+     *
+     * <p>So faz sentido para kit de <strong>1 pente</strong>: o novo kit tem 2 pentes,
+     * o dobro da capacidade e o preco estimado como o dobro do kit original (o catalogo
+     * informa o preco do kit, nao do pente). O id e o modelo recebem o sufixo
+     * {@code 2x} para o usuario distinguir as duas opcoes na lista e no resumo.</p>
+     *
+     * @return novo kit com 2 pentes e o dobro do preco
+     * @throws IllegalStateException quando o kit original nao tem exatamente 1 pente
+     */
+    public Memoria comPenteAdicional() {
+        if (quantidadePentes != 1) {
+            throw new IllegalStateException(
+                    "Adicionar pente so se aplica a kit de 1 pente: " + quantidadePentes);
+        }
+        BigDecimal preco = getPrecoMedioBRL() == null
+                ? null
+                : getPrecoMedioBRL().multiply(BigDecimal.valueOf(2));
+        Integer consumo = getConsumoEstimadoWatts() == null
+                ? null
+                : getConsumoEstimadoWatts() * 2;
+        return builder()
+                .id(getId() + "-2x")
+                .modelo(getModelo() + " 2x")
+                .fabricante(getFabricante())
+                .consumoEstimadoWatts(consumo)
+                .precoMedioBRL(preco)
+                .garantiaMeses(getGarantiaMeses())
+                .anoLancamento(getAnoLancamento())
+                .observacoes(getObservacoes())
+                .tipo(tipo)
+                .capacidadePorPenteGB(capacidadePorPenteGB)
+                .quantidadePentes(2)
+                .frequenciaMTs(frequenciaMTs)
+                .frequenciaJEDECBaseMTs(frequenciaJEDECBaseMTs)
+                .latenciaCAS(latenciaCAS)
+                .tensaoVolts(tensaoVolts)
+                .perfilEXPO(perfilEXPO)
+                .perfilXMP(perfilXMP)
+                .possuiECC(possuiECC)
+                .alturaMm(alturaMm)
+                .construir();
     }
 
     @Override
